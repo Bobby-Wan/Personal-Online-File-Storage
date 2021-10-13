@@ -1,0 +1,26 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Defiler</a>
+    <div style="margin-top: 30px">
+        {{#if loggedIn}}
+        <a id="logout-button" class="btn btn-primary btn-lg active" href="#">Logout</a>
+        {{else}}
+        <a id="login-button" class="btn btn-primary btn-lg active" href="/login">Login</a>
+        <a class="btn btn-primary btn-lg active click-button" href="/signup">Sign up</a>
+        {{/if}}
+    </div>
+
+</nav>
+<form id="file-upload-form" method="POST" action="/upload-files" enctype="multipart/form-data">
+    <input id="file-upload-input" type="file" name="uploads" oninput="uploadFiles()" multiple style="display: none;" />
+    <input id='upload-button' type="button" class="click-button" value="Upload" onclick="selectFiles()" />
+    <input id='upload-button' type="button" class="click-button" value="Create Directory" onclick="createDirectory()" />
+
+    <span id="user-message" style="visibility:hidden">fill text</span>
+</form>
+<div class="active-directory">
+    <p id='active-directory'>/</p>
+</div>
+
+{{#each files}}
+    <a id='{{this.name}}' data-type='{{this.type}}' name = 'file-link' href="#" class=" link-type{{this.type}} btn btn-primary click-button context-menu">{{this.name}}</a>
+{{/each}}
