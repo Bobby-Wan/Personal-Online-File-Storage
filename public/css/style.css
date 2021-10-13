@@ -1,0 +1,51 @@
+.form-container{
+    border:#007777 solid 3px;
+    margin:auto;
+    padding:10px;
+}
+.body{
+    /* copied from google drive */
+    background:rgba(0,0,0,.2);
+}
+.click-button{
+    font-size: 1.25rem;
+    padding:0.8,1.2rem;
+    margin:1rem;
+    background-color:transparent;
+
+    /* copied from google drive css*/
+    border-width: 1px;
+    border: solid rgb(218, 220, 224);
+    border-top-left-radius: 6px;
+    border-top-right-radius:6px;
+    border-bottom-left-radius:6px;
+    border-bottom-right-radius:6px;
+
+    /* copied from google drive css*/
+    color:rgba(0,0,0,.72);
+}
+
+.file-button:active{
+    background-color:#e8f0fe;
+    color:#1967d2;
+    border-color:rgb(232, 240, 254)
+}
+
+#user-message{
+    background:salmon;
+    padding:1.3rem;
+}
+#upload-button{
+    display:inline;
+}
+#active-directory{
+    font-size: 1.25rem;
+    padding:0.8,1.2rem;
+    margin:1rem;
+}
+.link-type1{
+    background:lightblue;
+}
+.link-type2{
+    background: lightgreen;
+}
