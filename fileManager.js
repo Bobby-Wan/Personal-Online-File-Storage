@@ -12,210 +12,248 @@ const helpers = require("./helpers");
 
 const rootDir = path.join(__dirname, 'files');
 
+
+async function folderExists(folderFullPath) {
+    try {
+        await fspromises.access(folderFullPath);
+        return true;
+    }
+    catch (err) {
+        return false;
+    }
+}
+
+function folderExistsPromise(folderFullPath){
+    return Promise.resolve(fspromises.access(folderFullPath));
+}
+
+async function userFolderExists(userId) {
+    const fullPath = path.join(rootDir, userId);
+    return await folderExists(fullPath);
+}
+
 const multerStorage = multer.diskStorage({
-    destination: function(req, file, cb) {
+    destination: function (req, file, cb) {
         //FIX should go to appropriate folder
-        let {filepath} = helpers.getQueryJSON(req);
-        if(!filepath){
-            filepath='/';
+        let { filepath } = helpers.getQueryJSON(req);
+        if (!filepath) {
+            filepath = '/';
         }
         cb(null, `files/${req.session.userId}${path}`);
     },
 
-    filename: function(req, file, cb) {
+    filename: function (req, file, cb) {
         cb(null, file.originalname);
     }
 });
 
-async function downloadFile(res, relativePath){
+async function downloadFile(res, relativePath) {
     const absolutePath = path.join(rootDir, relativePath);
-    try{
+    try {
         await fspromises.access(absolutePath);
     }
-    catch{
+    catch {
         res.json({
-            code:1,
-            message:'No such file'
+            code: 1,
+            message: 'No such file'
         });
     }
-        
-    try{
-        if(!isFile(absolutePath)){
+
+    try {
+        if (!isFile(absolutePath)) {
             throw new Error('Not a file...');
         }
-        res.download(absolutePath, (err)=>{
-            if(err){
+        res.download(absolutePath, (err) => {
+            if (err) {
                 console.log('Downloading file error: ' + err);
             }
         });
     }
-    catch(e){
+    catch (e) {
         res.send({
-            code:1,
-            userMessage:'This is not a file'
+            code: 1,
+            userMessage: 'This is not a file'
         });
     }
 }
 
-async function sendFile(res, userPath){
+async function sendFile(res, userPath) {
     const absolute_path = path.join(rootDir, userPath);
-    try{
+    try {
         await fspromises.stat(absolute_path);
 
         //ADD functionality for opening directories
 
-        let file = await fspromises.readFile(absolute_path, {encoding:'base64'});
+        let file = await fspromises.readFile(absolute_path, { encoding: 'base64' });
 
         //ADD type filtering here, not all can be opened in browser
         //maybe on front end as well
 
         const extention = path.extname(absolute_path);
         let mimeType = mime.lookup(extention);
-        if(mimeType){
+        if (mimeType) {
             res.setHeader('Content-Type', mimeType);
         }
-        else{
+        else {
             res.status(500).end();
             return;
         }
         res.send(file);
     }
-    catch(error){
+    catch (error) {
         console.error(error);
         res.json({
-            code:1,
-            message:'No such file'
+            code: 1,
+            message: 'No such file'
         });
     }
 }
 
 //ZIP beforehand
-async function downloadDirectory(req, res, relativePath, zip){
-    const path = rootDir+relativePath;
-    if(!fspromises.access(path)){
+async function downloadDirectory(req, res, relativePath, zip) {
+    const path = rootDir + relativePath;
+    if (!fspromises.access(path)) {
         throw new Error('Directory does not exist');
     }
-    if(!isDirectory(relativePath)){
+    if (!isDirectory(relativePath)) {
         throw new Error('Not a directory...');
     }
 
-    if(zip){
+    if (zip) {
         zipper.file
     }
 };
 
-async function getFileSize(relativePath){
+async function getFileSize(relativePath) {
     const path = rootDir + relativePath;
-    let stats = await fspromises.stat(path, (err)=>{
-        if(err && err.code === 'ENOENT'){
+    let stats = await fspromises.stat(path, (err) => {
+        if (err && err.code === 'ENOENT') {
             console.alert(`${path} does not exist`);
         }
     });
 
-    if(!stats.isFile()){
+    if (!stats.isFile()) {
         throw new Error('Not a file!');
     }
 
     return stats.size;
 }
 
-async function listFiles(userPath){
+async function listFiles(userPath) {
     let dir = path.join(rootDir, userPath);
 
-    const files = await fspromises.readdir(dir, {withFileTypes:true});
-    return files.map(x=>(
+    const files = await fspromises.readdir(dir, { withFileTypes: true });
+    return files.map(x => (
         {
-            name:x.name,
-            type:x.isDirectory()?1:0
+            name: x.name,
+            type: x.isDirectory() ? 1 : 0
         }));
 }
 
-async function userHasFolder(folderPath){
-    try{
-        await fspromises.access(folderPath);
+async function userHasFolder(userId) {
+    const dir = path.join(rootDir, userId);
+    try {
+        await fspromises.access(dir);
         return true;
     }
-    catch(err){
+    catch (err) {
         return false;
-    }    
+    }
 }
 
-async function isFile(path){
+async function isFile(path) {
     const dir = path.join(rootDir, path);
-    await fspromises.stat(dir, (err, stat)=>{
-        if(err){
+    await fspromises.stat(dir, (err, stat) => {
+        if (err) {
             throw new Error(err);
         }
-        else if(!stat){
+        else if (!stat) {
             throw new Error('Missing file stats');
         }
         return stat.isFile();
     });
 }
-async function isDirectory(path){
+async function isDirectory(path) {
     const dir = path.join(rootDir, path);
-    await fspromises.stat(dir, (err, stat)=>{
-        if(err){
+    await fspromises.stat(dir, (err, stat) => {
+        if (err) {
             throw new Error(err);
         }
-        else if(!stat){
+        else if (!stat) {
             throw new Error('Missing file stats');
         }
         return stat.isDirectory();
     });
 }
 
-async function createFolder(folderName){
+function createFolderPromise(folderName) {
     const dir = path.join(rootDir, folderName);
-    fspromises.stat(dir, (err)=>{
-        if(err && err.code !== 'ENOENT'){
+    return Promise.resolve(fspromises.mkdir(dir))
+
+    // .then {
+        // const dir = path.join(rootDir, folderName);
+        // fs.access(dir, function (err) {
+            // if (!err) {
+                // resolve();
+            // }
+            // fs.mkdir(dir)
+            // reject(err);
+        // });
+    // });
+}
+
+//FIXME: why am I only creating in root directory
+async function createFolder(folderName) {
+    const dir = path.join(rootDir, folderName);
+    fs.access(dir, async (err) => {
+        if (err && err.code !== 'ENOENT') {
             throw err;
         }
 
-        fspromises.mkdir(dir, (e)=>{
-            if(e){
+        await fspromises.mkdir(dir, (e) => {
+            if (e) {
                 console.log(`Could not create directory ${dir}: ${e}`);
             }
         });
     });
 }
 
-async function renameFile(oldPath, newPath){
+async function renameFile(oldPath, newPath) {
     const absolute_path_old = path.join(rootDir, oldPath);
     const absolute_path_new = path.join(rootDir, newPath);
-    try{
+    try {
         await fspromises.stat(absolute_path_old);
-        
+
     }
-    catch(err){
+    catch (err) {
         console.error(err);
         return false;
     }
 
-    try{
+    try {
         await fspromises.stat(absolute_path_new);
     }
-    catch(err){
-        if(err && err.code !== 'ENOENT'){
+    catch (err) {
+        if (err && err.code !== 'ENOENT') {
             console.error(err);
             return false;
         }
     }
-    try{
+    try {
         await fspromises.rename(absolute_path_old, absolute_path_new);
         return true
     }
-    catch(err){
+    catch (err) {
         console.error(err);
         return false;
     }
 }
 
-function getFullPath(userPath){
+function getFullPath(userPath) {
     return path.join(rootDir, userPath);
 }
 
-async function deleteFile(path){
+async function deleteFile(path) {
     let absolute_path = getFullPath(path);
     // try{
     //     await validateFile(absolute_path);
@@ -225,59 +263,59 @@ async function deleteFile(path){
     // }
 
     let stats = await fspromises.stat(absolute_path);
-    try{
-        if(stats.type === 0){
+    try {
+        if (stats.type === 0) {
             await fspromises.unlink(absolute_path);
         }
-        else if(stats.type === 1){
+        else if (stats.type === 1) {
             await fspromises.rmdir(absolute_path);
         }
         else throw new Error();
 
         return;
     }
-    catch(err){
+    catch (err) {
         throw new InternalServerError('Something went wrong when deleting file.');
     }
 }
 
-async function createDirectory(path){
+async function createDirectory(path) {
     let absolute_path = getFullPath(path);
 
-    try{
+    try {
         await fspromises.access(absolute_path);
         return new BadRequestError('Name already taken.');
     }
-    catch(err){
-        
+    catch (err) {
+
     }
-    try{
+    try {
         await fspromises.mkdir(absolute_path);
         return true;
     }
-    catch(err){
+    catch (err) {
         return new InternalServerError('Something went wrong.');
     }
 
 }
 
-async function getFilesInDirectory(userPath){
+async function getFilesInDirectory(userPath) {
     const absolute_path = path.join(rootDir, userPath);
-    
+
     //ADD validation that dir exists
 
     let stat;
-    try{
+    try {
         stat = await fspromises.stat(absolute_path);
     }
-    catch(err){
+    catch (err) {
         return new BadRequestError('Directory does not exist.');
     }
 
-    if(stat.isDirectory()){
+    if (stat.isDirectory()) {
         return listFiles(userPath);
     }
-    else{
+    else {
         return new BadRequestError('Not a directory.');
     }
 }
@@ -292,5 +330,8 @@ module.exports = {
     sendFile,
     deleteFile,
     createDirectory,
-    getFilesInDirectory
+    getFilesInDirectory,
+    userFolderExists,
+    createFolderPromise,
+    folderExists
 }
