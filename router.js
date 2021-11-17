@@ -38,23 +38,36 @@ router.get("/signup", auth.checkSession, async (req,res)=>{
  * @param - /
  * @description - Get home page
  */
-router.get("/", auth.auth, async (req,res)=>{
+router.get("/", auth.auth, (req,res)=>{
   try {
     //ADD security here
 
-    //rootDir for current user
     //CHANGE to new filelist function
-    //ADD error handling if dir doesn't exist
-    const files = await fileManager.listFiles(req.session.userId);
 
-    res.render('files',{
-      files:files,
-      loggedIn:true
+    Promise.resolve(fileManager.userHasFolder(req.session.userId))
+    .then((exists)=>{
+      if(!exists){
+        return Promise.resolve(fileManager.createFolderPromise(req.session.userId));
+      }
+
+      return Promise.resolve();
+    })
+    .then(()=>{
+      return Promise.resolve(fileManager.listFiles(req.session.userId));
+    })
+    .then((files)=>{
+      res.render('files', {
+        files:files,
+        loggedIn:true
+      });
+    })
+    .catch((err)=>{
+      console.log('ERROR: ', err);
     });
   } 
   catch (e) {
     //ADD 404 page
-    res.send({ message: "Error in Fetching user" });
+    res.status(500).send({ message: "Error in fetching user" });
   }
 });
 
@@ -186,64 +199,55 @@ router.post(
  * @description - User Login Handler
  */
 router.post(
-    "/login",
-    [
-      check("email", "Please enter your email").isEmail(),
-      check("password", "Please enter a valid password").isLength({
-        min: 6
-      })
-    ],
-    async (req, res) => {
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
+  "/login",
+  [
+    check("email", "Please enter your email").isEmail(),
+    check("password", "Please enter a valid password").isLength({
+      min: 6
+    })
+  ],
+  (req, res)=>{
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.render("login",{
+        message:errors.array()[0].msg,
+        messageClass:"alert-danger"
+      });
+      return;
+    }
+
+    const { email, password } = req.body;
+
+    Promise.resolve(User.findOne({
+      email
+    }))
+    .then((user)=>{
+      if(!user || !user.password){
         res.render("login",{
-          message:errors.array()[0].msg,
+          message:"User with such email does not exist.",
           messageClass:"alert-danger"
         });
+        throw new Error();
       }
-      else{
-        const { email, password } = req.body;
 
-        try {
-          let user = await User.findOne({
-            email
-          });
-          if (!user){
-            res.render("login",{
-              message:"User with such email does not exist.",
-              messageClass:"alert-danger"
-            });
-            return;
-          }
+      const correctPassword = bcrypt.compare(password, user.password)
+      
+      if (!correctPassword){
+        res.render("login",{
+          message:"Incorrect password.",
+          messageClass:"alert-danger"
+        });
 
-          const isMatch = await bcrypt.compare(password, user.password);
-          if (!isMatch){
-              res.render("login",{
-                message:"Incorrect password.",
-                messageClass:"alert-danger"
-              });
-
-              return;
-          }
-
-          req.session.userId = user.id;
-          req.session.username = user.username;
-
-          return res.redirect('/');
-
-        } catch (e) {
-          console.error(e);
-          res.render('signup',{
-            message:'Server error',
-            messageClass:'alert-danger'
-          });
-
-          return;
-        }
+        throw new Error();
       }
-    }
-  );
+
+      req.session.userId = user.id;
+      req.session.username = user.username;
+
+      return res.redirect('/');
+    })
+    .catch();
+  });
 
 router.get('/download', auth.auth, (req, res)=>{
   let requestPath = helpers.getQueryJSON(req).path;
