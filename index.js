@@ -1,4 +1,5 @@
-const https = require('https')
+const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const bodyParser = require("body-parser");
 const express = require('express');
@@ -10,11 +11,6 @@ const exphbs = require('express-handlebars');
 const session = require('express-session');
 const MemoryStore = require('memorystore')(session)
 const path = require('path');
-
-const options = {
-  key: fs.readFileSync(__dirname+'/config/keys/server.key'),
-  cert: fs.readFileSync(__dirname+'/config/keys/server.cert')
-};
 
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
@@ -35,7 +31,9 @@ app.use(session({
   cookie:{
     //1 hour
     maxAge:3600000
-  }
+  },
+  resave:false,
+  saveUninitialized:false
   }));
 
 app.engine('hbs', exphbs({
@@ -44,7 +42,7 @@ app.engine('hbs', exphbs({
 
 app.set('view engine', 'hbs');
 
-process.env.PORT = 443;
+process.env.PORT = 8080;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
@@ -56,7 +54,16 @@ app.use(router);
 //   router.checkRoute(req,res);
 // });
 
-const  server = https.createServer(options, app);
+//HTTPS version
+// const options = {
+  // key: fs.readFileSync(__dirname+'/config/keys/server.key'),
+  // cert: fs.readFileSync(__dirname+'/config/keys/server.cert')
+// };
+// const  server = https.createServer(options, app);
+
+//HTTP version
+const server = http.createServer(app);
+
 server.listen(process.env.PORT, 'localhost', ()=>{
   console.log('Server running..');
 });
