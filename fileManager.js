@@ -32,7 +32,8 @@ async function userFolderExists(userId) {
     return await folderExists(fullPath);
 }
 
-const multerStorage = multer.diskStorage({
+//FIXME: do this soon
+const multerStorageOld = multer.diskStorage({
     destination: function (req, file, cb) {
         //FIX should go to appropriate folder
         let { filepath } = helpers.getQueryJSON(req);
@@ -46,6 +47,24 @@ const multerStorage = multer.diskStorage({
         cb(null, file.originalname);
     }
 });
+
+const diskStorage = multer.diskStorage({
+    destination:function(req, file, cb){
+        let {filepath} = helpers.getQueryJSON(req);
+        if(!filepath){
+            filepath = '/';
+        }
+
+        const userRootDir = path.join(rootDir, req.session.userId);
+        const fullDir = path.join(userRootDir, filepath);
+        cb(null, fullDir);
+    },
+    filename:function(req,file,cb){
+        cb(null, file.originalname)
+    }
+});
+
+const upload = multer({storage:diskStorage});
 
 async function downloadFile(res, relativePath) {
     const absolutePath = path.join(rootDir, relativePath);
@@ -189,17 +208,6 @@ async function isDirectory(path) {
 function createFolderPromise(folderName) {
     const dir = path.join(rootDir, folderName);
     return Promise.resolve(fspromises.mkdir(dir))
-
-    // .then {
-        // const dir = path.join(rootDir, folderName);
-        // fs.access(dir, function (err) {
-            // if (!err) {
-                // resolve();
-            // }
-            // fs.mkdir(dir)
-            // reject(err);
-        // });
-    // });
 }
 
 //FIXME: why am I only creating in root directory
@@ -324,7 +332,7 @@ module.exports = {
     createFolder,
     userHasFolder,
     listFiles,
-    multerStorage,
+    upload,
     downloadFile,
     renameFile,
     sendFile,
