@@ -71,7 +71,14 @@ router.get("/", auth.auth, (req,res)=>{
   }
 });
 
-router.post('/upload-files', auth.auth, (req, res) => {
+router.post("/upload-files", auth.auth,
+    fileManager.upload.single("uploaded-file"),
+    (req,res)=>{
+      console.log(req);
+    }
+    );
+
+router.post('/upload-files2', auth.auth, (req, res) => {
   // 'files_to_upload' is the name of our file input field in the HTML form
   let upload = multer({ storage: fileManager.multerStorage}).array('uploads', 10);
 
