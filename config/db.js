@@ -6,7 +6,8 @@ const MONGOURI = "mongodb://127.0.0.1:27017/defiler";
 const InitiateMongoServer = async () => {
   try {
     await mongoose.connect(MONGOURI, {
-      useNewUrlParser: true
+      useNewUrlParser: true,
+      useUnifiedTopology: true
     });
     console.log("Connected to DB !!");
   } catch (e) {
