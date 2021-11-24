@@ -11,11 +11,12 @@
 
 </nav>
 <form id="file-upload-form" method="POST" action="/upload-files" enctype="multipart/form-data">
-    <input id="file-upload-input" type="file" name="uploads" oninput="uploadFiles()" multiple style="display: none;" />
-    <input id='upload-button' type="button" class="click-button" value="Upload" onclick="selectFiles()" />
-    <input id='upload-button' type="button" class="click-button" value="Create Directory" onclick="createDirectory()" />
+    <label for="file-upload-input">Upload</label>
+    <input id="file-upload-input" style='display:none' type="file" name="uploaded-file"/>
+    <input type="submit" value="Go!">
+    {{!-- <input id='create-directory-button' type="button" class="click-button" value="Create Directory" onclick="createDirectory()" /> --}}
 
-    <span id="user-message" style="visibility:hidden">fill text</span>
+    {{!-- <span id="user-message" style="visibility:hidden"></span> --}}
 </form>
 <div class="active-directory">
     <p id='active-directory'>/</p>
