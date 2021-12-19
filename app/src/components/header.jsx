@@ -1,15 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import "../App.css";
 
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
-import { Button } from "@mui/material";
+import { Button, Tooltip } from "@mui/material";
 import SettingsSystemDaydreamIcon from "@mui/icons-material/SettingsSystemDaydream";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 export default function Header() {
   return (
-    <div>
+    <div className="header">
       <Tabs style={{ margin: "0 50px", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
           <div>
@@ -35,6 +37,13 @@ export default function Header() {
         <Link to="signup">
           <Button>Register</Button>
         </Link>
+        <div className="lguotButton">
+          <Tooltip title="Logout">
+            <Link to="/">
+              <LogoutIcon />
+            </Link>
+          </Tooltip>
+        </div>
       </Tabs>
       <Divider />
     </div>
