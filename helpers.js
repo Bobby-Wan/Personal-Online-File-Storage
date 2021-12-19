@@ -9,11 +9,11 @@ let defaultCookieOptions = {
     sameSite:'strict'
 };
 
-function updateSession(req,res,user){
-    if(!req.session.user){
-        req.session.user = user;
-    }
-}
+// function updateSession(req,res,user){
+//     if(!req.session.user){
+//         req.session.user = user;
+//     }
+// }
 
 function getQueryJSON(req){
     return url.parse(req.url, true).query;
