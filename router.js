@@ -15,23 +15,23 @@ const helpers = require("./helpers");
  * @param - /
  * @description - Get login page
  */
-router.get("/login", auth.checkSession, async (req,res)=>{
-  res.render('login');
-});
+// router.get("/login", auth.checkSession, async (req,res)=>{
+//   res.render('login');
+// });
 
 /**
  * @method - GET
  * @param - /
  * @description - Get sign up page
  */
-router.get("/signup", auth.checkSession, async (req,res)=>{
-  try {
-    res.render('signup');
-  } catch (e) {
-    res.statusCode=500;
-    res.send({ message: "Error in fetching page" });
-  }
-});
+// router.get("/signup", auth.checkSession, async (req,res)=>{
+//   try {
+//     res.render('signup');
+//   } catch (e) {
+//     res.statusCode=500;
+//     res.send({ message: "Error in fetching page" });
+//   }
+// });
 
 /**
  * @method - GET
@@ -234,7 +234,6 @@ router.post(
           message:"User with such email does not exist.",
           messageClass:"alert-danger"
         });
-        throw new Error();
       }
 
       const correctPassword = bcrypt.compare(password, user.password)
