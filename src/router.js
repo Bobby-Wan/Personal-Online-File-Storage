@@ -26,12 +26,12 @@ function getResponseObject(data, error) {
 
 function authenticate(req, res, next) {
   const token = req.headers['access-token'] || req.cookies['auth-cookie'];
-  auth.verityToken(token)
+  auth.verifyToken(token)
     .then(({ userId }) => {
       req.userId = userId;
       next();
     })
-    .catch((error)=>{
+    .catch((error) => {
       res.status(401).json(getResponseObject(undefined, "Unable to authorize user"));
     });
 }
@@ -72,14 +72,14 @@ router.get("/", authenticate, (req, res) => {
   }
 });
 
-router.post("/upload-files", auth.auth,
+router.post("/upload-files", authenticate,
   fileManager.upload.single("uploaded-file"),
   (req, res) => {
     console.log(req);
   }
 );
 
-router.post('/upload-files2', auth.auth, (req, res) => {
+router.post('/upload-files2', authenticate, (req, res) => {
   // 'files_to_upload' is the name of our file input field in the HTML form
   let upload = multer({ storage: fileManager.multerStorage }).array('uploads', 10);
 
@@ -121,7 +121,12 @@ router.post(
       min: 6
     })
   ],
-  async (req, res) => {
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json(getResponseObject(undefined, errors.array()));
+      return;
+    }
     const {
       name,
       username,
@@ -129,61 +134,52 @@ router.post(
       password
     } = req.body;
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json(getResponseObject(undefined, errors.array()));
-      return;
-    }
-
-    try {
-      //FIX await here???
-      await User.findOne({
-        $or: [{
-          email: req.body.email
-        },
-        {
-          username: req.body.username
-        }]
-      }).then(async user => {
-        if (user) {
-          if (user.username === username) {
-            res.render("signup", {
-              message: "Username already exists.",
-              messageClass: "alert-danger"
-            });
-          }
-          else if (user.email === email) {
-            res.render("signup", {
-              message: "Email already in use.",
-              messageClass: "alert-danger"
-            });
-          }
+    Promise.resolve(User.findOne({
+      $or: [{
+        email: email
+      },
+      {
+        username: username
+      }]
+    }))
+      .then((user) => {
+        if (user && user.username === username) {
+          var error = { "errorField": "username", "errorMessage": "Username already exists" };
+          return Promise.reject(error);
         }
-        else {
-          const newUser = new User({
-            name,
-            username,
-            email,
-            password
+        if (user && user.email === email) {
+          var error = { "errorField": "email", "errorMessage": "User with such email already exists" };
+          return Promise.reject(error);
+        }
+
+        return Promise.resolve(bcrypt.genSalt(10))
+          .then((salt) => {
+            return bcrypt.hash(password, salt);
+          })
+          .then((hashedPassword) => {
+            const newUser = new User({
+              name,
+              username,
+              email,
+              password
+            });
+            newUser.password = hashedPassword;
+            return newUser.save();
+          })
+          .then(() => {
+            return fileManager.createFolder(newUser.id);
+          })
+          .then(() => {
+            res.status(200).json(getResponseObject(newUser));
+          })
+          .catch((error) => {
+            res.status(500).json(getResponseObject(undefined, error));
+            return null;
           });
-          //figure out how much time it takes and maybe dont await it
-          const salt = await bcrypt.genSalt(10);
-          newUser.password = await bcrypt.hash(password, salt);
-
-          await newUser.save();
-
-          //no need to await here, i think
-          fileManager.createFolder(newUser.id);
-
-          req.session.userId = newUser.id;
-          req.session.username = newUser.username;
-        }
+      })
+      .catch((error) => {
+        res.status(400).json(getResponseObject(undefined, error));
       });
-
-    } catch (err) {
-      res.status(500).json(getResponseObject(undefined, "Something unexpected happened.")); 
-      return;
-    }
   }
 );
 
@@ -225,15 +221,22 @@ router.post(
           return;
         }
 
-        req.local.userId = userId
-        req.local.username = user.username;
-
-        return res.redirect('/');
-      })
-      .catch();
+        // req.userId = user.id
+        // req.username = user.username;
+        
+        let tokenPromise = auth.createToken({
+          "userId":user.id,
+          "username":user.username
+        });
+        Promise.resolve(tokenPromise)
+        .then((token)=>{
+          res.status(200).json(getResponseObject("Bearer " + token));
+        });
+        return;
+      });
   });
 
-router.get('/download', auth.auth, (req, res) => {
+router.get('/download', authenticate, (req, res) => {
   let requestPath = helpers.getQueryJSON(req).path;
 
   if (requestPath === undefined) {
@@ -247,7 +250,7 @@ router.get('/download', auth.auth, (req, res) => {
   fileManager.downloadFile(res, userPath);
 });
 
-router.post('/rename', auth.auth, async (req, res) => {
+router.post('/rename', authenticate, async (req, res) => {
   let requestPath = helpers.getQueryJSON(req).path;
 
   if (requestPath === undefined) {
@@ -284,7 +287,7 @@ router.post('/rename', auth.auth, async (req, res) => {
   }
 });
 
-router.get('/open', auth.auth, async (req, res) => {
+router.get('/open', authenticate, async (req, res) => {
   let requestPath = helpers.getQueryJSON(req).path;
   let isDir = helpers.getQueryJSON(req).isDirectory;
 
@@ -325,7 +328,7 @@ router.get('/open', auth.auth, async (req, res) => {
   }
 });
 
-router.post('/delete', auth.auth, async function (req, res) {
+router.post('/delete', authenticate, async function (req, res) {
   let userPath;
   try {
     const clientFilePath = req.body.path;
@@ -368,7 +371,7 @@ router.post('/delete', auth.auth, async function (req, res) {
   })
 });
 
-router.post('/create', auth.auth, async function (req, res) {
+router.post('/create', authenticate, async function (req, res) {
   //ADD error handling
   const dir = helpers.getQueryJSON(req).directory;
   const isDir = dir && dir === 'false';
