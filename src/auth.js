@@ -21,7 +21,7 @@ module.exports.createToken = function(payload){
   });
 }
 
-module.exports.verify = function(token){
+module.exports.verifyToken = function(token){
   return new Promise((resolve, reject)=>{
     jwt.verify(token, secret, (err, decoded)=>{
       if(err) { return void reject(err); }
