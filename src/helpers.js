@@ -45,7 +45,6 @@ function getUserPath(userId, relativePath){
 }
 
 module.exports = {
-    updateSession,
     getQueryJSON,
     getUserPath,
     getRealPath
