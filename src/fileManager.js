@@ -10,7 +10,7 @@ const mime = require('mime-types');
 const { BadRequestError, InternalServerError } = require('./customErrors/CustomError');
 const helpers = require("./helpers");
 
-const rootDir = path.join(__dirname, 'files');
+const rootDir = process.env.ROOT_DIR;
 
 
 async function folderExists(folderFullPath) {
@@ -211,18 +211,23 @@ function createFolderPromise(folderName) {
 }
 
 //FIXME: why am I only creating in root directory
-async function createFolder(folderName) {
+function createFolder(folderName) {
     const dir = path.join(rootDir, folderName);
-    fs.access(dir, async (err) => {
-        if (err && err.code !== 'ENOENT') {
-            throw err;
-        }
-
-        await fspromises.mkdir(dir, (e) => {
-            if (e) {
-                console.log(`Could not create directory ${dir}: ${e}`);
-            }
-        });
+    return new Promise((resolve, reject)=>{
+        fspromises.access(dir)
+        .then(()=>{
+            reject(new Error("Folder already exists."));
+        })
+        .catch(()=>{
+            fspromises.mkdir(dir)
+            .then(()=>{
+                resolve();
+            })
+            .catch((error)=>{
+                console.log(error);
+                reject(error);
+            });
+        })
     });
 }
 
