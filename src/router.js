@@ -151,7 +151,7 @@ router.post(
           var error = { "errorField": "email", "errorMessage": "User with such email already exists" };
           return Promise.reject(error);
         }
-
+        console.log("Validations pass"); 
         return Promise.resolve(bcrypt.genSalt(10))
           .then((salt) => {
             return bcrypt.hash(password, salt);
@@ -164,15 +164,19 @@ router.post(
               password
             });
             newUser.password = hashedPassword;
-            return newUser.save();
+            return newUser.save().then(()=>{
+              return newUser;
+            });
           })
-          .then(() => {
+          .then((newUser) => {
+            console.log("Before creating folder");
             return fileManager.createFolder(newUser.id);
           })
           .then(() => {
-            res.status(200).json(getResponseObject(newUser));
+            res.status(200).json(getResponseObject());
           })
           .catch((error) => {
+            console.log({error});
             res.status(500).json(getResponseObject(undefined, error));
             return null;
           });
