@@ -9,7 +9,6 @@ const path = require('path');
 const errors = require('./customErrors/CustomError');
 const User = require("./models/User");
 const helpers = require("./helpers");
-const { STATUS_CODES } = require("http");
 
 function getResponseObject(data, error) {
   if (!data) {
@@ -24,14 +23,19 @@ function getResponseObject(data, error) {
   };
 }
 
+function createErrorObject(message, field) {
+  return { "field": field, "message": message };
+}
+
 function authenticate(req, res, next) {
-  const token = req.headers['access-token'] || req.cookies['auth-cookie'];
+  const token = req.headers['authorization'] || req.cookies['auth-cookie'];
   auth.verifyToken(token)
     .then(({ userId }) => {
       req.userId = userId;
       next();
     })
     .catch((error) => {
+      console.log(error);
       res.status(401).json(getResponseObject(undefined, "Unable to authorize user"));
     });
 }
@@ -42,34 +46,24 @@ function authenticate(req, res, next) {
  * @description - Get home page
  */
 router.get("/", authenticate, (req, res) => {
-  try {
-    //CHANGE to new filelist function
+  Promise.resolve(fileManager.userHasFolder(req.userId))
+    .then((exists) => {
+      if (!exists) {
+        return Promise.resolve(fileManager.createFolder(req.userId));
+      }
 
-    Promise.resolve(fileManager.userHasFolder(req.session.userId))
-      .then((exists) => {
-        if (!exists) {
-          return Promise.resolve(fileManager.createFolderPromise(req.session.userId));
-        }
-
-        return Promise.resolve();
-      })
-      .then(() => {
-        return Promise.resolve(fileManager.listFiles(req.session.userId));
-      })
-      .then((files) => {
-        res.render('files', {
-          files: files,
-          loggedIn: true
-        });
-      })
-      .catch((err) => {
-        console.log('ERROR: ', err);
-      });
-  }
-  catch (e) {
-    //ADD 404 page
-    res.status(500).send({ message: "Error in fetching user" });
-  }
+      return;
+    })
+    .then(() => {
+      return Promise.resolve(fileManager.listFiles(req.userId));
+    })
+    .then((files) => {
+      res.status(200).json(getResponseObject(files));
+    })
+    .catch((err) => {
+      console.log('ERROR: ', err);
+      res.status(500).json(getResponseObject(undefined, createErrorObject('Something went wrong', 'internal field')));
+    });
 });
 
 router.post("/upload-files", authenticate,
@@ -151,7 +145,7 @@ router.post(
           var error = { "errorField": "email", "errorMessage": "User with such email already exists" };
           return Promise.reject(error);
         }
-        console.log("Validations pass"); 
+        console.log("Validations pass");
         return Promise.resolve(bcrypt.genSalt(10))
           .then((salt) => {
             return bcrypt.hash(password, salt);
@@ -164,7 +158,7 @@ router.post(
               password
             });
             newUser.password = hashedPassword;
-            return newUser.save().then(()=>{
+            return newUser.save().then(() => {
               return newUser;
             });
           })
@@ -176,7 +170,7 @@ router.post(
             res.status(200).json(getResponseObject());
           })
           .catch((error) => {
-            console.log({error});
+            console.log({ error });
             res.status(500).json(getResponseObject(undefined, error));
             return null;
           });
@@ -213,7 +207,7 @@ router.post(
       email
     }))
       .then((user) => {
-        if (!user || !user.password) {
+        if (!(user && user.password)) {
           res.status(400).json(getResponseObject(undefined, "Invalid combination."));
           return;
         }
@@ -227,15 +221,16 @@ router.post(
 
         // req.userId = user.id
         // req.username = user.username;
-        
+
         let tokenPromise = auth.createToken({
-          "userId":user.id,
-          "username":user.username
+          "userId": user.id,
+          "username": user.username,
+          "email": user.email
         });
         Promise.resolve(tokenPromise)
-        .then((token)=>{
-          res.status(200).json(getResponseObject("Bearer " + token));
-        });
+          .then((token) => {
+            res.status(200).json(getResponseObject(token));
+          });
         return;
       });
   });
@@ -255,6 +250,15 @@ router.get('/download', authenticate, (req, res) => {
 });
 
 router.post('/rename', authenticate, async (req, res) => {
+
+  //validateRequest
+  //checkRequestPath
+  //validateNames
+  //validateFiles
+
+  //getRealPaths
+
+  //
   let requestPath = helpers.getQueryJSON(req).path;
 
   if (requestPath === undefined) {
@@ -263,16 +267,16 @@ router.post('/rename', authenticate, async (req, res) => {
       code: 1
     });
   }
-
-  const oldName = req.body.oldName;
-  const newName = req.body.newName;
+  const {
+    oldName,
+    newName
+  } = req.body
 
   if (!oldName || !newName) {
-    res.status(400).json({
-      userMessage: 'Missing old or new name in request body',
-      code: 1
-    });
+    const error = createErrorObject(`Invalid names, old:${oldName}, new:${newName}`, "names");
+    res.status(400).json(getResponseObject(undefined, error));
   }
+
   const os_specific_old_path = helpers.getRealPath(requestPath + oldName);
   const os_specific_new_path = helpers.getRealPath(requestPath + newName);
   const userPathOld = path.join(req.session.userId, os_specific_old_path);
@@ -418,4 +422,9 @@ router.post('/create', authenticate, async function (req, res) {
   }
 });
 
+router.post("/test", (req, res) => {
+  console.log(req.body);
+  console.log(`query: ${req.url}`);
+  res.status(200).json(req.body);
+});
 module.exports = router;
