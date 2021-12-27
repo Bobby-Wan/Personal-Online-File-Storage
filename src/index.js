@@ -44,15 +44,11 @@ app.set('view engine', 'hbs');
 
 process.env.PORT = 8080;
 
+app.use("/test",bodyParser.text({type:"text/plain"}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
-
-// app.use(auth);
 app.use(router);
-// app.get('/secret', (req,res)=>{
-//   res.statusCode=200;
-//   router.checkRoute(req,res);
-// });
+
 
 //HTTPS version
 // const options = {

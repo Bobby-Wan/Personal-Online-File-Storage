@@ -12,7 +12,6 @@ const helpers = require("./helpers");
 
 const rootDir = process.env.ROOT_DIR;
 
-
 async function folderExists(folderFullPath) {
     try {
         await fspromises.access(folderFullPath);
@@ -31,22 +30,6 @@ async function userFolderExists(userId) {
     const fullPath = path.join(rootDir, userId);
     return await folderExists(fullPath);
 }
-
-//FIXME: do this soon
-const multerStorageOld = multer.diskStorage({
-    destination: function (req, file, cb) {
-        //FIX should go to appropriate folder
-        let { filepath } = helpers.getQueryJSON(req);
-        if (!filepath) {
-            filepath = '/';
-        }
-        cb(null, `files/${req.session.userId}${path}`);
-    },
-
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    }
-});
 
 const diskStorage = multer.diskStorage({
     destination:function(req, file, cb){
@@ -210,7 +193,7 @@ function createFolderPromise(folderName) {
     return Promise.resolve(fspromises.mkdir(dir))
 }
 
-//FIXME: why am I only creating in root directory
+//FIXME: pretty breakable then/catch logic
 function createFolder(folderName) {
     const dir = path.join(rootDir, folderName);
     return new Promise((resolve, reject)=>{
@@ -224,7 +207,6 @@ function createFolder(folderName) {
                 resolve();
             })
             .catch((error)=>{
-                console.log(error);
                 reject(error);
             });
         })
