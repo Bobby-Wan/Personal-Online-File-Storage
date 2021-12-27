@@ -13,8 +13,7 @@ module.exports.checkSession = function(req, res, next) {
 
 module.exports.createToken = function(payload){
   return new Promise((resolve, reject)=>{
-    const { password, ...payloadWithoutPassword } = payload;
-    jwt.sign(payloadWithoutPassword, secret, {expiresIn:'1h'}, (err, token)=>{
+    jwt.sign(payload, secret, {expiresIn:'1h'}, (err, token)=>{
       if(err) { return void reject(err); }
       resolve(token);
     });
@@ -23,8 +22,19 @@ module.exports.createToken = function(payload){
 
 module.exports.verifyToken = function(token){
   return new Promise((resolve, reject)=>{
-    jwt.verify(token, secret, (err, decoded)=>{
-      if(err) { return void reject(err); }
+    let tokenParts = token.split(' ');
+    let tokenString = undefined;
+
+    //protection against 'Bearer' prefix in token
+    if(tokenParts.length > 1){
+      tokenString = tokenParts[1];
+    }else{
+      tokenString = tokenParts[0];
+    }
+
+    jwt.verify(tokenString, secret, (err, decoded)=>{
+      
+      if(err) { reject(err); }
       resolve(decoded);
     });
   });
