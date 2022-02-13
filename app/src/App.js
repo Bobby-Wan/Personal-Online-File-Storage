@@ -6,11 +6,6 @@ import RegisterPage from "./pages/register";
 import Header from "./components/header";
 import ErrorPage from "./pages/notFound";
 
-// const ProtectedComponent = () => {
-//   if (localStorage.getItem("authToken")) return <Redirect to="login" />;
-//   return <HomePage />;
-// };
-
 function App() {
   return (
     <div className="App">

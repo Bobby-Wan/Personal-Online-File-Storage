@@ -5,15 +5,15 @@ import { TextField, Button, Card } from "@mui/material";
 import "../App.css";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("foo1@abv.bg");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleOnSubmit = async (e) => {
     e.preventDefault();
 
     let result = await fetch("http://127.0.0.1:8080/login", {
       method: "post",
-      body: JSON.stringify({ password: "123456", email: "foo1@abv.bg" }),
+      body: JSON.stringify({ password, email }),
       headers: {
         "Content-Type": "application/json",
         Accept: "*/*",
@@ -21,13 +21,13 @@ export default function LoginPage() {
     });
     result = await result.json();
     if (result) {
-      console.log(result.data);
       localStorage.setItem("authToken", result.data);
-      setEmail("");
-      setPassword("");
+      //TODO: redirect to home page
     }
+    //TODO: error handling
   };
 
+  //TODO: form validation
   return (
     <div className="formWrapper">
       <Card
