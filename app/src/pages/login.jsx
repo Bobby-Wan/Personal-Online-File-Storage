@@ -1,15 +1,24 @@
 import React from "react";
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 
-import { TextField, Button, Card } from "@mui/material";
+import { TextField, Button, Card, Alert } from "@mui/material";
 import "../App.css";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [error, setError] = useState("");
+  const hasLoggedUser = localStorage.getItem("authToken");
+
   const handleOnSubmit = async (e) => {
     e.preventDefault();
+
+    if (!email || !password) {
+      setError("Fields are required");
+      return;
+    }
 
     let result = await fetch("http://127.0.0.1:8080/login", {
       method: "post",
@@ -19,17 +28,19 @@ export default function LoginPage() {
         Accept: "*/*",
       },
     });
+
     result = await result.json();
     if (result) {
       localStorage.setItem("authToken", result.data);
-      //TODO: redirect to home page
+      window.location.reload(false);
     }
-    //TODO: error handling
+    if (result.error) setError(result.error);
   };
 
   //TODO: form validation
   return (
     <div className="formWrapper">
+      {hasLoggedUser && <Navigate to="/" replace={true} />}
       <Card
         sx={{
           width: 300,
@@ -62,8 +73,11 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
+        {error && (
+          <ErrorAlert onClick={() => setError(null)}>{error}</ErrorAlert>
+        )}
         <div>
-          <Button variant="contained" fullWidth onClick={handleOnSubmit}>
+          <Button variant="contained" fullWidth={true} onClick={handleOnSubmit}>
             Login
           </Button>
         </div>
@@ -71,3 +85,7 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export const ErrorAlert = (props) => {
+  return <Alert severity="error" variant="filled" {...props} />;
+};

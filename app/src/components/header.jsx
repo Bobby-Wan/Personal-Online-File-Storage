@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../App.css";
 
@@ -10,9 +10,20 @@ import SettingsSystemDaydreamIcon from "@mui/icons-material/SettingsSystemDaydre
 import LogoutIcon from "@mui/icons-material/Logout";
 
 export default function Header() {
+  const [hasLoggedUser, setUser] = useState(localStorage.getItem("authToken"));
+
+  useEffect(() => {
+    setUser(localStorage.getItem("authToken"));
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    window.location.reload(false);
+  };
+
   return (
     <div className="header">
-      <Tabs style={{ margin: "0 50px", alignItems: "center" }}>
+      <Tabs style={{ margin: "0 50px", alignItems: "center" }} value={false}>
         <div style={{ display: "flex", alignItems: "center" }}>
           <div>
             <SettingsSystemDaydreamIcon fontSize="large" color="primary" />
@@ -28,22 +39,30 @@ export default function Header() {
           </Typography>
         </div>
 
-        <Link to="/">
-          <Button>Home</Button>
-        </Link>
-        <Link to="login">
-          <Button>Login</Button>
-        </Link>
-        <Link to="signup">
-          <Button>Register</Button>
-        </Link>
-        <div className="lguotButton">
-          <Tooltip title="Logout">
-            <Link to="/">
-              <LogoutIcon />
-            </Link>
-          </Tooltip>
-        </div>
+        {hasLoggedUser && (
+          <Link to="/">
+            <Button>Home</Button>
+          </Link>
+        )}
+        {!hasLoggedUser && (
+          <Link to="login">
+            <Button>Login</Button>
+          </Link>
+        )}
+        {!hasLoggedUser && (
+          <Link to="signup">
+            <Button>Register</Button>
+          </Link>
+        )}
+        {hasLoggedUser && (
+          <div className="lguotButton" onClick={handleLogout}>
+            <Tooltip title="Logout">
+              <Link to="login">
+                <LogoutIcon />
+              </Link>
+            </Tooltip>
+          </div>
+        )}
       </Tabs>
       <Divider />
     </div>
