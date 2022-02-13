@@ -19,18 +19,18 @@ export default function RegisterPage() {
         <h1 style={{ margin: 0 }}>Register</h1>
         <div>
           <TextField
-            id="standard-basic"
+            id="standard-basic-username"
             label="Username"
             variant="standard"
-            fullWidth
+            fullWidth={true}
           />
         </div>
         <div>
           <TextField
-            id="standard-basic"
+            id="standard-basic-email"
             label="Email"
             variant="standard"
-            fullWidth
+            fullWidth={true}
           />
         </div>
         <div>
@@ -39,7 +39,7 @@ export default function RegisterPage() {
             label="Password"
             type="password"
             variant="standard"
-            fullWidth
+            fullWidth={true}
           />
         </div>
         <div>

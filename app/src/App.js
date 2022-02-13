@@ -4,6 +4,12 @@ import HomePage from "./pages/home";
 import LoginPage from "./pages/login";
 import RegisterPage from "./pages/register";
 import Header from "./components/header";
+import ErrorPage from "./pages/notFound";
+
+// const ProtectedComponent = () => {
+//   if (localStorage.getItem("authToken")) return <Redirect to="login" />;
+//   return <HomePage />;
+// };
 
 function App() {
   return (
@@ -14,6 +20,7 @@ function App() {
           <Route exact path="/" element={<HomePage />} />
           <Route exact path="login" element={<LoginPage />} />
           <Route exact path="signup" element={<RegisterPage />} />
+          <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>
     </div>
