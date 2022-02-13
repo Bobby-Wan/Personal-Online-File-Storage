@@ -1,4 +1,5 @@
 import React from "react";
+import { Navigate } from "react-router-dom";
 import {
   IconButton,
   Input,
@@ -14,8 +15,11 @@ import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
 export default function HomePage() {
+  const hasLoggedUser = localStorage.getItem("authToken");
+
   return (
     <div className="homePage">
+      {!hasLoggedUser && <Navigate to="/login" replace={true} />}
       <FormControl sx={{ m: 1, width: "50ch" }}>
         <InputLabel htmlFor="standard-adornment-text" variant="standard">
           Search
