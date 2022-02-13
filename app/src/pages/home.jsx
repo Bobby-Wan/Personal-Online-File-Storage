@@ -13,13 +13,30 @@ import SearchIcon from "@mui/icons-material/Search";
 import BreadcrumbsNav from "../components/breadcrumbs";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import FormDialog from "../components/popup";
 
 export default function HomePage() {
   const hasLoggedUser = localStorage.getItem("authToken");
 
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   return (
     <div className="homePage">
       {!hasLoggedUser && <Navigate to="/login" replace={true} />}
+      <FormDialog
+        open={open}
+        handleClose={handleClose}
+        //TODO: change to real submit logic
+        handleSubmit={handleClose}
+      />
       <FormControl sx={{ m: 1, width: "50ch" }}>
         <InputLabel htmlFor="standard-adornment-text" variant="standard">
           Search
@@ -49,6 +66,7 @@ export default function HomePage() {
             <Button
               omponent="label"
               // onClick={handleClickCreateFolder}
+              onClick={handleClickOpen}
             >
               <CreateNewFolderIcon />
             </Button>

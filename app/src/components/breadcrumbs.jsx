@@ -6,6 +6,7 @@ export default function BreadcrumbsNav() {
     event.preventDefault();
     console.info("You clicked a breadcrumb.");
   }
+
   return (
     <div role="presentation" onClick={handleClick}>
       <Breadcrumbs aria-label="breadcrumb" style={{ margin: "35px 100px" }}>
