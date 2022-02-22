@@ -32,14 +32,15 @@ export default function RegisterPage() {
     });
 
     result = await result.json();
-    if (result) {
-      console.log(result.data);
+    if (result.data) {
       setRegisterStatus(true);
     }
-    if (result.error) setError(result.error);
+    if (result.error !== null && result.error.errorMessage)
+      setError(result.error.errorMessage);
+    if (result.error !== null && result.error.code)
+      setError("Enter valid email");
   };
 
-  //TODO: form validation
   return (
     <div className="formWrapper">
       {isRegisterSuccsessfull && <Navigate to="/login" replace={true} />}
