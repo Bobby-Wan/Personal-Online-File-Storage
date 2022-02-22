@@ -7,7 +7,13 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
-export default function FormDialog({ open, handleClose, handleSubmit }) {
+export default function FormDialog({
+  open,
+  name,
+  handleNameChange,
+  handleClose,
+  handleSubmit,
+}) {
   return (
     <div>
       <Dialog open={open} onClose={handleClose}>
@@ -21,6 +27,8 @@ export default function FormDialog({ open, handleClose, handleSubmit }) {
             type="text"
             fullWidth
             variant="standard"
+            value={name}
+            onChange={handleNameChange}
           />
         </DialogContent>
         <DialogActions>

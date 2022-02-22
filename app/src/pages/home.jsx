@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import {
   IconButton,
@@ -18,7 +18,8 @@ import FormDialog from "../components/popup";
 export default function HomePage() {
   const hasLoggedUser = localStorage.getItem("authToken");
 
-  const [open, setOpen] = React.useState(false);
+  const [folderName, setFolderName] = useState("");
+  const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -28,14 +29,44 @@ export default function HomePage() {
     setOpen(false);
   };
 
+  const handleCreateFolder = async (e) => {
+    e.preventDefault();
+
+    if (folderName === "") {
+      // setError("Fields are required");
+      console.log("NO NAME!!");
+      return;
+    }
+
+    let result = await fetch("http://127.0.0.1:8080/create", {
+      method: "post",
+      body: JSON.stringify({ path: folderName }),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "*/*",
+        authorization: localStorage.getItem("authToken"),
+      },
+    });
+
+    result = await result.json();
+    if (result.data) {
+      console.log("CREATED FOLDER");
+      // fetch back new directory or only show it
+      setOpen(false);
+    }
+    if (result.error !== null && result.error.length > 0) console.log("ERROR!");
+  };
+
   return (
     <div className="homePage">
       {!hasLoggedUser && <Navigate to="/login" replace={true} />}
       <FormDialog
         open={open}
+        name={folderName}
+        handleNameChange={(e) => setFolderName(e.target.value)}
         handleClose={handleClose}
         //TODO: change to real submit logic
-        handleSubmit={handleClose}
+        handleSubmit={handleCreateFolder}
       />
       <FormControl sx={{ m: 1, width: "50ch" }}>
         <InputLabel htmlFor="standard-adornment-text" variant="standard">
