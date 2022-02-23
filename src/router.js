@@ -29,8 +29,7 @@ function createErrorObject(message, field) {
 
 function authenticate(req, res, next) {
   const token = req.headers["authorization"] || req.cookies["auth-cookie"];
-  auth
-    .verifyToken(token)
+  auth.verifyToken(token)
     .then(({ userId }) => {
       req.userId = userId;
       next();
@@ -206,10 +205,7 @@ router.post(
 router.post(
   "/login",
   [
-    check("email", "Please enter your email").isEmail(),
-    check("password", "Please enter a valid password").isLength({
-      min: 6,
-    }),
+    check("email", "Please enter your email").isEmail()
   ],
   (req, res) => {
     const errors = validationResult(req);
@@ -228,31 +224,32 @@ router.post(
       if (!(user && user.password)) {
         res
           .status(400)
-          .json(getResponseObject(undefined, "Invalid combination."));
+          .json(getResponseObject(undefined, "Invalid email/password."));
         return;
       }
 
-      const correctPassword = bcrypt.compare(password, user.password);
+      bcrypt.compare(password, user.password)
+      .then((result)=>{
+        if(!result){
+          res.status(400)
+          .json(getResponseObject(undefined, "Invalid email/password"));
+          return;
+        }
 
-      if (!correctPassword) {
-        res
-          .status(400)
-          .json(getResponseObject(undefined, "Invalid combination."));
+        let tokenPromise = auth.createToken({
+          userId: user.id,
+          username: user.username,
+          email: user.email,
+        });
+        Promise.resolve(tokenPromise).then((token) => {
+          res.status(200).json(getResponseObject(token));
+        });
         return;
-      }
-
-      // req.userId = user.id
-      // req.username = user.username;
-
-      let tokenPromise = auth.createToken({
-        userId: user.id,
-        username: user.username,
-        email: user.email,
-      });
-      Promise.resolve(tokenPromise).then((token) => {
-        res.status(200).json(getResponseObject(token));
-      });
-      return;
+      })
+      .catch((err)=>{
+        res.status(500)
+        .json(getResponseObject(undefined, err));
+      })      
     });
   }
 );
