@@ -10,9 +10,12 @@ import {
   Tooltip,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import BreadcrumbsNav from "../components/breadcrumbs";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import PublishIcon from "@mui/icons-material/Publish";
+import CancelIcon from "@mui/icons-material/Cancel";
+
+import BreadcrumbsNav from "../components/breadcrumbs";
 import FormDialog from "../components/popup";
 
 export default function HomePage() {
@@ -20,6 +23,7 @@ export default function HomePage() {
 
   const [folderName, setFolderName] = useState("");
   const [open, setOpen] = useState(false);
+  const [files, setFiles] = useState([]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -27,13 +31,45 @@ export default function HomePage() {
 
   const handleClose = () => {
     setOpen(false);
+    setFolderName("");
+  };
+
+  const handleUploadFile = async (e) => {
+    e.preventDefault();
+
+    if (files.length === 0) {
+      //TODO: error handling
+      console.log("NO SELECTED FILE!!");
+      return;
+    }
+
+    let result = await fetch("http://127.0.0.1:8080/upload-files", {
+      method: "post",
+      body: JSON.stringify({ file: files }),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "*/*",
+        authorization: localStorage.getItem("authToken"),
+      },
+    });
+
+    result = await result.json();
+    if (result.data) {
+      console.log("UPLOADED FILE");
+      // TODO: show added file
+      setOpen(false);
+    }
+    if (result.error !== null && result.error.length > 0) {
+      //TODO: error handling
+      console.log("ERROR!");
+    }
   };
 
   const handleCreateFolder = async (e) => {
     e.preventDefault();
 
     if (folderName === "") {
-      // setError("Fields are required");
+      //TODO: error handling
       console.log("NO NAME!!");
       return;
     }
@@ -51,10 +87,13 @@ export default function HomePage() {
     result = await result.json();
     if (result.data) {
       console.log("CREATED FOLDER");
-      // fetch back new directory or only show it
+      // TODO: fetch back new directory or only show it
       setOpen(false);
     }
-    if (result.error !== null && result.error.length > 0) console.log("ERROR!");
+    if (result.error !== null && result.error.length > 0) {
+      //TODO: error handling
+      console.log("ERROR!");
+    }
   };
 
   return (
@@ -65,7 +104,6 @@ export default function HomePage() {
         name={folderName}
         handleNameChange={(e) => setFolderName(e.target.value)}
         handleClose={handleClose}
-        //TODO: change to real submit logic
         handleSubmit={handleCreateFolder}
       />
       <FormControl sx={{ m: 1, width: "50ch" }}>
@@ -76,6 +114,7 @@ export default function HomePage() {
           endAdornment={
             <InputAdornment position="end">
               <IconButton
+              // TODO: search logic
               // onClick={handleClickSearch}
               >
                 <SearchIcon />
@@ -87,31 +126,47 @@ export default function HomePage() {
       <div
         style={{
           display: "flex",
-          // justifyContent: "space-evenly",
           alignItems: "center",
         }}
       >
         <BreadcrumbsNav />
         <div>
           <Tooltip title="Create new Folder">
-            <Button
-              omponent="label"
-              // onClick={handleClickCreateFolder}
-              onClick={handleClickOpen}
-            >
+            <Button omponent="label" onClick={handleClickOpen}>
               <CreateNewFolderIcon />
             </Button>
           </Tooltip>
           <Tooltip title="Upload file">
-            <Button
-              component="label"
-              // onClick={handleClickUploadFile}
-            >
+            <Button component="label">
               <UploadFileIcon />
-              <input type="file" hidden />
+              <input
+                type="file"
+                hidden
+                onChange={(e) => {
+                  console.log(e.target.files);
+                  setFiles(e.target.files ? e.target.files : []);
+                }}
+              />
             </Button>
           </Tooltip>
         </div>
+        {files.length > 0 && (
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "5px 10px",
+              borderRadius: "15px",
+            }}
+          >
+            {files[0].name}{" "}
+            <Button onClick={handleUploadFile}>
+              <PublishIcon />
+            </Button>{" "}
+            <Button onClick={() => setFiles([])}>
+              <CancelIcon />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
