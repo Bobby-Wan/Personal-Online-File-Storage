@@ -32,14 +32,13 @@ export default function RegisterPage() {
     });
 
     result = await result.json();
-    if (result) {
-      console.log(result.data);
+    if (result.data || (result.error !== null && result.error.code)) {
       setRegisterStatus(true);
     }
-    if (result.error) setError(result.error);
+    if (result.error !== null && result.error.errorMessage)
+      setError(result.error.errorMessage);
   };
 
-  //TODO: form validation
   return (
     <div className="formWrapper">
       {isRegisterSuccsessfull && <Navigate to="/login" replace={true} />}

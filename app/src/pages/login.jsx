@@ -30,14 +30,14 @@ export default function LoginPage() {
     });
 
     result = await result.json();
-    if (result) {
+    if (result.data) {
       localStorage.setItem("authToken", result.data);
       window.location.reload(false);
     }
-    if (result.error) setError(result.error);
+    if (result.error !== null && result.error.length > 0)
+      setError(result.error[0].msg);
   };
 
-  //TODO: form validation
   return (
     <div className="formWrapper">
       {hasLoggedUser && <Navigate to="/" replace={true} />}
