@@ -32,11 +32,9 @@ export default function RegisterPage() {
     });
 
     result = await result.json();
-    if (result.data || (result.error !== null && result.error.code)) {
-      setRegisterStatus(true);
-    }
     if (result.error !== null && result.error.errorMessage)
       setError(result.error.errorMessage);
+    else setRegisterStatus(true);
   };
 
   return (
