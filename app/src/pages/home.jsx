@@ -45,7 +45,7 @@ export default function HomePage() {
 
     let result = await fetch("http://127.0.0.1:8080/upload-files", {
       method: "post",
-      body: JSON.stringify({ file: files }),
+      body: JSON.stringify({ file: files[0] }),
       headers: {
         "Content-Type": "application/json",
         Accept: "*/*",
