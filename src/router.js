@@ -29,6 +29,11 @@ function createErrorObject(message, field) {
 
 function authenticate(req, res, next) {
   const token = req.headers["authorization"] || req.cookies["auth-cookie"];
+  if(!token){
+    res.status(401).json(getResponseObject(undefined, "Unable to find authentication token.\
+    Please include it in 'authorization' header or 'auth-cookie' cookie"));
+    return;
+  }
   auth.verifyToken(token)
     .then(({ userId }) => {
       req.userId = userId;
@@ -78,9 +83,19 @@ router.get("/", authenticate, (req, res) => {
 router.post(
   "/upload-file",
   authenticate,
-  fileManager.upload.single("uploaded-file"),
+  fileManager.upload.single("file"),
   (req, res) => {
-    res.status(200).json(getResponseObject());
+    res.status(200).json(getResponseObject(req.file));
+  }
+);
+
+router.post(
+  "/upload-folder/:path",
+  authenticate,
+  (req, res) => {
+    console.log('request parameters: ', req.params);
+    res.status(200).send(getResponseObject());
+    // fileManager.createFolderPromise()
   }
 );
 
