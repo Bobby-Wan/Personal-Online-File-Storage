@@ -34,8 +34,18 @@ export default function LoginPage() {
       localStorage.setItem("authToken", result.data);
       window.location.reload(false);
     }
-    if (result.error !== null && result.error.length > 0)
+    if (
+      result.error !== null &&
+      Array.isArray(result.error) &&
+      result.error.length > 0
+    ) {
       setError(result.error[0].msg);
+      return;
+    }
+    if (result.error !== null) {
+      setError(result.error);
+      return;
+    }
   };
 
   return (
