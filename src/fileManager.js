@@ -12,6 +12,7 @@ const {
   InternalServerError,
 } = require("./customErrors/CustomError");
 const helpers = require("./helpers");
+const { resolve } = require("path");
 
 const rootDir =
   "C:\\Users\\Sevi\\Desktop\\project\\Personal-Online-File-Storage\\files";
@@ -25,8 +26,14 @@ async function folderExists(folderFullPath) {
   }
 }
 
-function folderExistsPromise(folderFullPath) {
-  return Promise.resolve(fspromises.access(folderFullPath));
+// function folderExistsPromise(folderFullPath){
+//     return Promise.resolve(fspromises.access(folderFullPath));
+// }
+
+function directoryExistsPromise(path, options) {
+  const finalPath = options && options.relative ? getAbsolutePath(path) : path;
+
+  return fspromises.access(finalPath);
 }
 
 async function userFolderExists(userId) {
@@ -43,6 +50,7 @@ const diskStorage = multer.diskStorage({
 
     const userRootDir = path.join(rootDir, req.session.userId);
     const fullDir = path.join(userRootDir, filepath);
+    console.log(`dir: ${fullDir}`);
     cb(null, fullDir);
   },
   filename: function (req, file, cb) {
@@ -140,14 +148,21 @@ async function getFileSize(relativePath) {
   return stats.size;
 }
 
-async function listFiles(userPath) {
-  let dir = path.join(rootDir, userPath);
+async function listFiles(path, options) {
+  const dir = options && options.relative ? getAbsolutePath(path) : path;
 
-  const files = await fspromises.readdir(dir, { withFileTypes: true });
-  return files.map((x) => ({
-    name: x.name,
-    type: x.isDirectory() ? 1 : 0,
-  }));
+  return fspromises.readdir(dir, { withFileTypes: true }).then((files) => {
+    return files.map((x) => ({
+      name: x.name,
+      type: x.isDirectory() ? 1 : 0,
+    }));
+  });
+  // const files = await fspromises.readdir(dir, { withFileTypes: true });
+  // return files.map(x => (
+  //     {
+  //         name: x.name,
+  //         type: x.isDirectory() ? 1 : 0
+  //     }));
 }
 
 async function userHasFolder(userId) {
@@ -185,7 +200,7 @@ async function isDirectory(path) {
 
 function createFolderPromise(folderName) {
   const dir = path.join(rootDir, folderName);
-  return Promise.resolve(fspromises.mkdir(dir));
+  return fspromises.mkdir(dir, { recursive: true });
 }
 
 //FIXME: pretty breakable then/catch logic
@@ -279,23 +294,40 @@ async function createDirectory(path) {
   }
 }
 
-async function getFilesInDirectory(userPath) {
-  const absolute_path = path.join(rootDir, userPath);
+function getFolderContentPromise(relativePath) {
+  const absolutePath = path.join(rootDir, relativePath);
+  fspromises
+    .stat(absolutePath)
+    .catch((err) => {
+      return err;
+    })
+    .then(() => {});
+}
 
-  //ADD validation that dir exists
+async function getFilesInDirectory(path, options) {
+  const finalPath = options && options.relative ? getAbsolutePath(path) : path;
 
   let stat;
   try {
-    stat = await fspromises.stat(absolute_path);
+    stat = await fspromises.stat(finalPath);
   } catch (err) {
     return new BadRequestError("Directory does not exist.");
   }
 
   if (stat.isDirectory()) {
-    return listFiles(userPath);
+    return listFiles(finalPath, { relative: true });
   } else {
     return new BadRequestError("Not a directory.");
   }
+}
+
+function getAbsolutePath(relPath) {
+  return path.join(rootDir, relPath);
+}
+
+function createUserFolderPromise(userId, folder) {
+  const relativePath = path.join(userId, folder);
+  return createFolderPromise(relativePath);
 }
 
 module.exports = {
@@ -312,4 +344,6 @@ module.exports = {
   userFolderExists,
   createFolderPromise,
   folderExists,
+  directoryExistsPromise,
+  createUserFolderPromise,
 };
