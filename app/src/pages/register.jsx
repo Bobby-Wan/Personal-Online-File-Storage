@@ -31,10 +31,15 @@ export default function RegisterPage() {
       },
     });
 
+    console.log(result);
+    if (result.status === 200) {
+      setRegisterStatus(true);
+      return;
+    }
+
     result = await result.json();
     if (result.error !== null && result.error.errorMessage)
       setError(result.error.errorMessage);
-    else setRegisterStatus(true);
   };
 
   return (
