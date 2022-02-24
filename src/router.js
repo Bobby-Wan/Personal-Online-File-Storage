@@ -9,7 +9,7 @@ const path = require("path");
 const errors = require("./customErrors/CustomError");
 const User = require("./models/User");
 const helpers = require("./helpers");
-const url = require('url');
+const { relative } = require("path");
 
 function getResponseObject(data, error) {
   if (!data) {
@@ -50,36 +50,48 @@ function authenticate(req, res, next) {
 
 /**
  * @method - GET
- * @param - /
- * @description - Get home page
+ * @param - path
+ * @description - Get content in specified directory
  */
-router.get("/", authenticate, (req, res) => {
-  Promise.resolve(fileManager.userHasFolder(req.userId))
-    .then((exists) => {
-      if (!exists) {
-        return Promise.resolve(fileManager.createFolder(req.userId));
-      }
+router.get("/content/", authenticate, (req, res) => {
+  const queryPath = req.query.path;
+  const userId = req.userId;
+  const relPath = path.join(userId, queryPath);
 
-      return;
-    })
+  Promise.resolve(fileManager.directoryExistsPromise(relPath, {relative:true}))
     .then(() => {
-      return Promise.resolve(fileManager.listFiles(req.userId));
+      return Promise.resolve(fileManager.listFiles(relPath, {relative:true}));
     })
     .then((files) => {
       res.status(200).json(getResponseObject(files));
     })
     .catch((err) => {
-      console.log("ERROR: ", err);
       res
-        .status(500)
+        .status(400)
         .json(
           getResponseObject(
             undefined,
-            createErrorObject("Something went wrong", "internal field")
+            createErrorObject("No such directory")
           )
         );
     });
 });
+
+// router.get('/:path', authenticate,
+//   (req, res)=>{
+//     const path = req.params.path;
+//     const userId = req.userId;
+//     const relPath = path.join(userId, path);
+
+//     let exists = fileManager.directoryExistsPromise(relPath,{relative:true});
+//     if(!exists){
+//       res.status(400).send(getResponseObject(undefined, 'No such directory'));
+//     }
+
+
+//     const content = fileManager.getDirectoryContent()
+//   }
+// );
 
 router.post(
   "/upload-file",
@@ -346,10 +358,10 @@ router.get("/open", authenticate, async (req, res) => {
     });
   }
 
-  const userPath = helpers.getUserPath(req.session.userId, requestPath);
+  const userPath = helpers.getUserPath(req.userId, requestPath);
 
   if (isDir === "true") {
-    let result = await fileManager.getFilesInDirectory(userPath);
+    let result = await fileManager.getFilesInDirectory(userPath, {relative:true});
 
     switch (result.constructor) {
       case errors.BadRequestError:
