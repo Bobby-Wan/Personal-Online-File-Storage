@@ -3,15 +3,15 @@ import { Navigate } from "react-router-dom";
 import axios from "axios";
 
 import {
-  IconButton,
-  Input,
-  InputLabel,
-  InputAdornment,
-  FormControl,
+  // IconButton,
+  // Input,
+  // InputLabel,
+  // InputAdornment,
+  // FormControl,
   Button,
   Tooltip,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+// import SearchIcon from "@mui/icons-material/Search";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import PublishIcon from "@mui/icons-material/Publish";
@@ -25,7 +25,7 @@ export default function HomePage() {
 
   const [folderName, setFolderName] = useState("");
   const [open, setOpen] = useState(false);
-  const [file, setFiles] = useState(null);
+  const [files, setFiles] = useState([]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -39,7 +39,7 @@ export default function HomePage() {
   const handleUploadFile = async (e) => {
     e.preventDefault();
 
-    if (!file) {
+    if (!files.length) {
       //TODO: error handling
       console.log("NO SELECTED FILE!!");
       return;
@@ -53,10 +53,10 @@ export default function HomePage() {
       },
     };
 
-    console.log(file);
-
     const data = new FormData();
-    data.append("file", file);
+    for (var x = 0; x < files.length; x++) {
+      data.append("file", files[x]);
+    }
 
     axios
       .post("http://127.0.0.1:8090/upload-file", data, config)
@@ -107,7 +107,7 @@ export default function HomePage() {
         handleClose={handleClose}
         handleSubmit={handleCreateFolder}
       />
-      <FormControl sx={{ m: 1, width: "50ch" }}>
+      {/* <FormControl sx={{ m: 1, width: "50ch" }}>
         <InputLabel htmlFor="standard-adornment-text" variant="standard">
           Search
         </InputLabel>
@@ -123,7 +123,7 @@ export default function HomePage() {
             </InputAdornment>
           }
         />
-      </FormControl>
+      </FormControl> */}
       <div
         style={{
           display: "flex",
@@ -143,31 +143,65 @@ export default function HomePage() {
               <input
                 type="file"
                 hidden
+                multiple
                 onChange={(e) => {
-                  setFiles(e.target.files[0]);
+                  setFiles(e.target.files);
                 }}
               />
             </Button>
           </Tooltip>
         </div>
-        {file && (
-          <div
-            style={{
-              backgroundColor: "white",
-              padding: "5px 10px",
-              borderRadius: "15px",
-            }}
-          >
-            {file.name}
-            <Button onClick={handleUploadFile}>
-              <PublishIcon />
-            </Button>
-            <Button onClick={() => setFiles([])}>
-              <CancelIcon />
-            </Button>
+        {files.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {console.log(files)}
+            {Object.values(files).map((file, index) => {
+              return (
+                <div
+                  style={{
+                    backgroundColor: "white",
+                    padding: "5px 10px",
+                    margin: "5px 0",
+                    borderRadius: "15px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  {file.name}
+                  <Button
+                    onClick={() => {
+                      setFiles(removeFileFromSelectedFiles(file.name, files));
+                    }}
+                  >
+                    <CancelIcon />
+                  </Button>
+                </div>
+              );
+            })}
+            <div>
+              <Button
+                onClick={handleUploadFile}
+                variant="contained"
+                size="small"
+                style={{ width: "50%", alignSelf: "center" }}
+              >
+                Upload <PublishIcon />
+              </Button>
+              <Button
+                onClick={() => {
+                  setFiles([]);
+                }}
+              >
+                <CancelIcon />
+              </Button>
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
+
+const removeFileFromSelectedFiles = (fileName, files) => {
+  const filteredFiles = (files = [...files].filter((s) => s.name !== fileName));
+  return filteredFiles;
+};
