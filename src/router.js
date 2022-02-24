@@ -96,9 +96,9 @@ router.get("/content/", authenticate, (req, res) => {
 router.post(
   "/upload-file",
   authenticate,
-  fileManager.upload.single("file"),
+  fileManager.upload.array("file"),
   (req, res) => {
-    res.status(200).json(getResponseObject(req.file));
+    res.status(200).json(getResponseObject(req.files));
   }
 );
 

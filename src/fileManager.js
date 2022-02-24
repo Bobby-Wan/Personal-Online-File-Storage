@@ -48,7 +48,7 @@ const diskStorage = multer.diskStorage({
       filepath = "/";
     }
 
-    const userRootDir = path.join(rootDir, req.session.userId);
+    const userRootDir = path.join(rootDir, req.userId);
     const fullDir = path.join(userRootDir, filepath);
     console.log(`dir: ${fullDir}`);
     cb(null, fullDir);

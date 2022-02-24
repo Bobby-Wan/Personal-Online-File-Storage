@@ -64,12 +64,6 @@ export default function HomePage() {
         console.log("UPLOADED FILE", res);
         // TODO: show added file
       });
-
-    
-    // if (result.error !== null && result.error.length > 0) {
-    //   //TODO: error handling
-    //   console.log("ERROR!");
-    // }
   };
 
   const handleCreateFolder = async (e) => {
