@@ -9,7 +9,6 @@ const zipper = require('node-zip');
 const mime = require('mime-types');
 const { BadRequestError, InternalServerError } = require('./customErrors/CustomError');
 const helpers = require("./helpers");
-const { ModuleResolutionKind } = require('typescript');
 const { resolve } = require('path');
 
 const rootDir = process.env.ROOT_DIR || '/home/bobby-wan/playground/node/Personal-Online-File-Storage/files/';
@@ -50,6 +49,7 @@ const diskStorage = multer.diskStorage({
 
         const userRootDir = path.join(rootDir, req.userId);
         const fullDir = path.join(userRootDir, filepath);
+        console.log(`dir: ${fullDir}`);
         cb(null, fullDir);
     },
     filename:function(req,file,cb){
