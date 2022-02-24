@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
+import axios from "axios";
+
 import {
   IconButton,
   Input,
@@ -23,7 +25,7 @@ export default function HomePage() {
 
   const [folderName, setFolderName] = useState("");
   const [open, setOpen] = useState(false);
-  const [files, setFiles] = useState([]);
+  const [file, setFiles] = useState(null);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -37,32 +39,31 @@ export default function HomePage() {
   const handleUploadFile = async (e) => {
     e.preventDefault();
 
-    if (files.length === 0) {
+    if (!file) {
       //TODO: error handling
       console.log("NO SELECTED FILE!!");
       return;
     }
 
-    let result = await fetch("http://127.0.0.1:8080/upload-files", {
-      method: "post",
-      body: JSON.stringify({ file: files[0] }),
+    const config = {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
         Accept: "*/*",
         authorization: localStorage.getItem("authToken"),
       },
-    });
+    };
 
-    result = await result.json();
-    if (result.data) {
-      console.log("UPLOADED FILE");
-      // TODO: show added file
-      setOpen(false);
-    }
-    if (result.error !== null && result.error.length > 0) {
-      //TODO: error handling
-      console.log("ERROR!");
-    }
+    console.log(file);
+
+    const data = new FormData();
+    data.append("file", file);
+
+    axios
+      .post("http://127.0.0.1:8090/upload-file", data, config)
+      .then((res) => {
+        console.log("UPLOADED FILE", res);
+        // TODO: show added file
+      });
   };
 
   const handleCreateFolder = async (e) => {
@@ -74,7 +75,7 @@ export default function HomePage() {
       return;
     }
 
-    let result = await fetch("http://127.0.0.1:8080/create", {
+    let result = await fetch("http://127.0.0.1:8090/create", {
       method: "post",
       body: JSON.stringify({ path: folderName }),
       headers: {
@@ -143,14 +144,13 @@ export default function HomePage() {
                 type="file"
                 hidden
                 onChange={(e) => {
-                  console.log(e.target.files);
-                  setFiles(e.target.files ? e.target.files : []);
+                  setFiles(e.target.files[0]);
                 }}
               />
             </Button>
           </Tooltip>
         </div>
-        {files.length > 0 && (
+        {file && (
           <div
             style={{
               backgroundColor: "white",
@@ -158,10 +158,10 @@ export default function HomePage() {
               borderRadius: "15px",
             }}
           >
-            {files[0].name}{" "}
+            {file.name}
             <Button onClick={handleUploadFile}>
               <PublishIcon />
-            </Button>{" "}
+            </Button>
             <Button onClick={() => setFiles([])}>
               <CancelIcon />
             </Button>

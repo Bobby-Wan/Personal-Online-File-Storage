@@ -20,7 +20,7 @@ export default function LoginPage() {
       return;
     }
 
-    let result = await fetch("http://127.0.0.1:8080/login", {
+    let result = await fetch("http://127.0.0.1:8090/login", {
       method: "post",
       body: JSON.stringify({ password, email }),
       headers: {

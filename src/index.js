@@ -26,12 +26,11 @@ app.use(cookierParser());
 
 app.set("view engine", "hbs");
 
-process.env.PORT = 8080;
+process.env.PORT = 8090;
 
 app.use("/test", bodyParser.text({ type: "text/plain" }));
 app.use(bodyParser.json());
 app.use(router);
-
 
 //HTTPS version
 // const options = {

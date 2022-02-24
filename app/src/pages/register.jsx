@@ -22,7 +22,7 @@ export default function RegisterPage() {
       return;
     }
 
-    let result = await fetch("http://127.0.0.1:8080/signup", {
+    let result = await fetch("http://127.0.0.1:8090/signup", {
       method: "post",
       body: JSON.stringify({ name: username, username, password, email }),
       headers: {
@@ -31,10 +31,13 @@ export default function RegisterPage() {
       },
     });
 
-    result = await result.json();
-    if (result.data || (result.error !== null && result.error.code)) {
+    console.log(result);
+    if (result.status === 200) {
       setRegisterStatus(true);
+      return;
     }
+
+    result = await result.json();
     if (result.error !== null && result.error.errorMessage)
       setError(result.error.errorMessage);
   };
