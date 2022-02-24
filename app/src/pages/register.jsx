@@ -22,7 +22,7 @@ export default function RegisterPage() {
       return;
     }
 
-    let result = await fetch("http://127.0.0.1:8080/signup", {
+    let result = await fetch("http://127.0.0.1:8090/signup", {
       method: "post",
       body: JSON.stringify({ name: username, username, password, email }),
       headers: {
