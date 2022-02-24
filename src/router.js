@@ -9,6 +9,7 @@ const path = require("path");
 const errors = require("./customErrors/CustomError");
 const User = require("./models/User");
 const helpers = require("./helpers");
+const url = require('url');
 
 function getResponseObject(data, error) {
   if (!data) {
@@ -90,12 +91,19 @@ router.post(
 );
 
 router.post(
-  "/upload-folder/:path",
+  "/upload-folder",
   authenticate,
   (req, res) => {
-    console.log('request parameters: ', req.params);
-    res.status(200).send(getResponseObject());
-    // fileManager.createFolderPromise()
+    const path = req.query.path;
+    const userId = req.userId;
+    fileManager.createUserFolderPromise(userId, path)
+    .then(()=>{
+      res.status(200).send(getResponseObject());
+    })
+    .catch((err)=>{
+      res.status(400).send(getResponseObject(undefined, err));
+    })
+    // console.log(`path: ${path}\nuserId: ${userId}`)
   }
 );
 

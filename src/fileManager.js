@@ -9,8 +9,11 @@ const zipper = require('node-zip');
 const mime = require('mime-types');
 const { BadRequestError, InternalServerError } = require('./customErrors/CustomError');
 const helpers = require("./helpers");
+const { ModuleResolutionKind } = require('typescript');
+const { resolve } = require('path');
 
-const rootDir = process.env.ROOT_DIR;
+const rootDir = process.env.ROOT_DIR || '/home/bobby-wan/playground/node/Personal-Online-File-Storage/files/';
+console.log('ROOT DIR: ', rootDir);
 
 async function folderExists(folderFullPath) {
     try {
@@ -38,7 +41,7 @@ const diskStorage = multer.diskStorage({
             filepath = '/';
         }
 
-        const userRootDir = path.join(rootDir, req.session.userId);
+        const userRootDir = path.join(rootDir, req.userId);
         const fullDir = path.join(userRootDir, filepath);
         cb(null, fullDir);
     },
@@ -190,7 +193,7 @@ async function isDirectory(path) {
 
 function createFolderPromise(folderName) {
     const dir = path.join(rootDir, folderName);
-    return Promise.resolve(fspromises.mkdir(dir))
+    return fspromises.mkdir(dir, {recursive:true});
 }
 
 //FIXME: pretty breakable then/catch logic
@@ -315,6 +318,15 @@ async function getFilesInDirectory(userPath) {
     }
 }
 
+function getAbsolutePath(userId){
+    return path.join(rootDir, userId);
+}
+
+function createUserFolderPromise(userId, folder){
+    const relativePath = path.join(userId, folder);
+    return createFolderPromise(relativePath)
+}
+
 module.exports = {
     createFolder,
     userHasFolder,
@@ -328,5 +340,6 @@ module.exports = {
     getFilesInDirectory,
     userFolderExists,
     createFolderPromise,
-    folderExists
+    folderExists,
+    createUserFolderPromise
 }
