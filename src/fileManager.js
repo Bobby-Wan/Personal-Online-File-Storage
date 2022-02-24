@@ -24,10 +24,6 @@ async function folderExists(folderFullPath) {
     }
 }
 
-// function folderExistsPromise(folderFullPath){
-//     return Promise.resolve(fspromises.access(folderFullPath));
-// }
-
 function directoryExistsPromise(path, options){
     const finalPath = (options && options.relative) ? getAbsolutePath(path) : path;
 
