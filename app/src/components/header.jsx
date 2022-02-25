@@ -23,7 +23,7 @@ export default function Header() {
 
   return (
     <div className="header">
-      <Tabs style={{ margin: "0 50px", alignItems: "center" }} value={false}>
+      <Tabs style={{ margin: "4px 50px", alignItems: "center" }} value={false}>
         <div style={{ display: "flex", alignItems: "center" }}>
           <div>
             <SettingsSystemDaydreamIcon fontSize="large" color="primary" />

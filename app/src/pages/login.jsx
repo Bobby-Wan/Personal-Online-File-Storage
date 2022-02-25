@@ -32,6 +32,7 @@ export default function LoginPage() {
     result = await result.json();
     if (result.data) {
       localStorage.setItem("authToken", result.data);
+      localStorage.setItem("path", "/");
       window.location.reload(false);
     }
     if (
