@@ -74,7 +74,7 @@ export default function HomePage() {
         Accept: "*/*",
         authorization: hasLoggedUser,
       },
-      params: { path: folderName },
+      params: { path: localStorage.getItem("path") + "/" + folderName },
     };
 
     axios
@@ -207,7 +207,8 @@ export default function HomePage() {
           )}
         </div>
       </div>
-      <img src={"data:image/png;base64, " + image} alt="" width={"500px"} />
+      <img src={"data:image/png;base64, " + image} alt="" width={"80%"} />
+      <div id="file-content"></div>
     </div>
   );
 }
