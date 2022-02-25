@@ -14,8 +14,7 @@ const {
 const helpers = require("./helpers");
 const { resolve } = require("path");
 
-const rootDir =
-  "C:\\Users\\Sevi\\Desktop\\project\\Personal-Online-File-Storage\\files";
+const rootDir = process.env.ROOT_DIR;
 
 async function folderExists(folderFullPath) {
   try {
@@ -153,12 +152,6 @@ async function listFiles(path, options) {
       type: x.isDirectory() ? 1 : 0,
     }));
   });
-  // const files = await fspromises.readdir(dir, { withFileTypes: true });
-  // return files.map(x => (
-  //     {
-  //         name: x.name,
-  //         type: x.isDirectory() ? 1 : 0
-  //     }));
 }
 
 async function userHasFolder(userId) {

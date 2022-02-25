@@ -14,7 +14,6 @@ const path = require("path");
 var cors = require("cors");
 
 const app = express();
-app.use(express.static(path.join(__dirname, "public")));
 
 app.use(cors());
 
@@ -24,9 +23,7 @@ InitiateMongoServer();
 
 app.use(cookierParser());
 
-app.set("view engine", "hbs");
-
-process.env.PORT = 8090;
+process.env.PORT = 8080;
 
 app.use("/test", bodyParser.text({ type: "text/plain" }));
 app.use(bodyParser.json());
