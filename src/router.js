@@ -315,7 +315,7 @@ router.post(
           });
           Promise.resolve(tokenPromise).then((token) => {
             res.cookie('auth', token, 
-            {maxAge:900000, httpOnly:true, sameSite:'strict', domain:'localhost'})
+            {maxAge:900000, httpOnly:true, domain:'localhost'})
             .send(getResponseObject(user.username));
             console.log('cookie created!');
           });
