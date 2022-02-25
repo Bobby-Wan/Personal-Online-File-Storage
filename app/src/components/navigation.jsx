@@ -27,7 +27,14 @@ export default function Navigation(props) {
 
     axios.get("http://127.0.0.1:8090/open", config).then((res) => {
       if (res.status === 200) {
-        props.handleImage(res.data);
+        console.log(res);
+        if (res.headers["content-type"] === "image/png; charset=utf-8")
+          props.handleImage(res.data);
+        document.getElementById("file-content").textContent = "";
+        if (res.headers["content-type"] === "text/plain; charset=utf-8") {
+          document.getElementById("file-content").textContent = res.data;
+          props.handleImage("");
+        }
       }
     });
   };
