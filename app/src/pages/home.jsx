@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 
@@ -20,7 +21,6 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import BreadcrumbsNav from "../components/breadcrumbs";
 import FormDialog from "../components/popup";
 import Navigation from "../components/navigation";
-import { useEffect } from "react";
 
 export default function HomePage() {
   const hasLoggedUser = localStorage.getItem("authToken");
@@ -29,6 +29,7 @@ export default function HomePage() {
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState([]);
   const [allDirs, setAllDirs] = useState([]);
+  const [image, setImage] = useState("");
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -65,8 +66,8 @@ export default function HomePage() {
     axios
       .post("http://127.0.0.1:8090/upload-file", data, config)
       .then((res) => {
-        console.log("UPLOADED FILE", res);
-        // TODO: show added file
+        setFiles([]);
+        getContent();
       });
   };
 
@@ -92,9 +93,9 @@ export default function HomePage() {
       .then((res) => {
         if (res.status === 200) {
           handleClose();
+          getContent();
           return;
         }
-        // TODO: show folders
       });
   };
 
@@ -108,10 +109,30 @@ export default function HomePage() {
     };
 
     axios.get("http://127.0.0.1:8090/content", config).then((res) => {
-      console.log(res.data.data);
       setAllDirs(res.data.data);
       // TODO: show folders
     });
+  };
+
+  const handleClick = (location) => {
+    switch (location) {
+      case "Home": {
+        if (localStorage.getItem("path") !== "/") {
+          localStorage.setItem("path", "/");
+          window.location.reload();
+        }
+        break;
+      }
+      default: {
+        const path = localStorage
+          .getItem("path")
+          .split(location)[0]
+          .concat(location);
+        localStorage.setItem("path", path);
+        window.location.reload();
+        break;
+      }
+    }
   };
 
   useEffect(() => {
@@ -121,7 +142,7 @@ export default function HomePage() {
   return (
     <div className="homePage">
       <div>
-        <Navigation dirs={allDirs} />
+        <Navigation dirs={allDirs} handleImage={(image) => setImage(image)} />
         {!hasLoggedUser && <Navigate to="/login" replace={true} />}
         <FormDialog
           open={open}
@@ -137,7 +158,7 @@ export default function HomePage() {
             alignItems: "center",
           }}
         >
-          <BreadcrumbsNav />
+          <BreadcrumbsNav handleClick={(location) => handleClick(location)} />
           <div>
             <Tooltip title="Create new Folder">
               <Button omponent="label" onClick={handleClickOpen}>
@@ -199,6 +220,7 @@ export default function HomePage() {
           )}
         </div>
       </div>
+      <img src={"data:image/png;base64, " + image} alt="" width={"500px"} />
     </div>
   );
 }
