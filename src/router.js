@@ -223,7 +223,7 @@ router.post(
  * @description - User Login Handler
  */
 router.post(
-  "/login",
+  "/login2",
   [
     check("email", "Please enter your email").isEmail()
   ],
@@ -275,7 +275,7 @@ router.post(
 );
 
  router.post(
-  "/login2",
+  "/login",
   [
     check("email", "Please enter your email").isEmail()
   ],
