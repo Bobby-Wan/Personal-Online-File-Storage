@@ -245,27 +245,25 @@ function getFullPath(userPath) {
   return path.join(rootDir, userPath);
 }
 
-async function deleteFile(path) {
-  let absolute_path = getFullPath(path);
-  // try{
-  //     await validateFile(absolute_path);
-  // }
-  // catch(err){
-  //     throw new BadRequestError('Could not validate file.');
-  // }
+function deleteFile(path, options) {
+    const finalPath = (options && options.relative) ? getAbsolutePath(path) : path;
 
-  let stats = await fspromises.stat(absolute_path);
-  try {
-    if (stats.type === 0) {
-      await fspromises.unlink(absolute_path);
-    } else if (stats.type === 1) {
-      await fspromises.rmdir(absolute_path);
-    } else throw new Error();
+    return fspromises.stat(finalPath)
+    .catch(()=>{
+        return Promise.reject('No such file.');
+    })
+    .then((stats)=>{
+        if(stats.isDirectory()){
+            return fspromises.rmdir(finalPath);
+        }
+        else if(stats.isFile() || stats.isSymbolicLink){
+            return fspromises.unlink(finalPath);
+        }
+        else{
+            return Promise.reject('Invalid file type');
+        }
+    });
 
-    return;
-  } catch (err) {
-    throw new InternalServerError("Something went wrong when deleting file.");
-  }
 }
 
 async function createDirectory(path) {

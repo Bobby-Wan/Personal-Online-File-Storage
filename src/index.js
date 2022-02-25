@@ -23,7 +23,7 @@ InitiateMongoServer();
 
 app.use(cookierParser());
 
-process.env.PORT = 8080;
+process.env.PORT = 8090;
 
 app.use("/test", bodyParser.text({ type: "text/plain" }));
 app.use(bodyParser.json());
