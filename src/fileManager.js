@@ -192,7 +192,6 @@ function createFolderPromise(folderName) {
   return fspromises.mkdir(dir, { recursive: true });
 }
 
-//FIXME: pretty breakable then/catch logic
 function createFolder(folderName) {
   const dir = path.join(rootDir, folderName);
   return new Promise((resolve, reject) => {

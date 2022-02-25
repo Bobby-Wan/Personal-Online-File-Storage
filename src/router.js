@@ -29,7 +29,7 @@ function createErrorObject(message, field) {
 }
 
 function authenticate(req, res, next) {
-  const token = req.headers["authorization"] || req.cookies["auth-cookie"];
+  const token = req.headers["authorization"] || req.cookies["auth"];
   if (!token) {
     res.status(401).json(getResponseObject(undefined, "Unable to find authentication token.\
     Please include it in 'authorization' header or 'auth-cookie' cookie"));
@@ -263,6 +263,61 @@ router.post(
           });
           Promise.resolve(tokenPromise).then((token) => {
             res.status(200).json(getResponseObject(token));
+          });
+          return;
+        })
+        .catch((err) => {
+          res.status(500)
+            .json(getResponseObject(undefined, err));
+        })
+    });
+  }
+);
+
+ router.post(
+  "/login2",
+  [
+    check("email", "Please enter your email").isEmail()
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json(getResponseObject(undefined, errors.array()));
+      return;
+    }
+
+    const { email, password } = req.body;
+
+    Promise.resolve(
+      User.findOne({
+        email,
+      })
+    ).then((user) => {
+      if (!(user && user.password)) {
+        res
+          .status(400)
+          .json(getResponseObject(undefined, "Invalid email/password."));
+        return;
+      }
+
+      bcrypt.compare(password, user.password)
+        .then((result) => {
+          if (!result) {
+            res.status(400)
+              .json(getResponseObject(undefined, "Invalid email/password"));
+            return;
+          }
+
+          let tokenPromise = auth.createToken({
+            userId: user.id,
+            username: user.username,
+            email: user.email,
+          });
+          Promise.resolve(tokenPromise).then((token) => {
+            res.cookie('auth', token, 
+            {maxAge:900000, httpOnly:true, sameSite:'strict', domain:'localhost'})
+            .send(getResponseObject());
+            console.log('cookie created!');
           });
           return;
         })
