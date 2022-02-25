@@ -77,22 +77,6 @@ router.get("/content/", authenticate, (req, res) => {
     });
 });
 
-// router.get('/:path', authenticate,
-//   (req, res)=>{
-//     const path = req.params.path;
-//     const userId = req.userId;
-//     const relPath = path.join(userId, path);
-
-//     let exists = fileManager.directoryExistsPromise(relPath,{relative:true});
-//     if(!exists){
-//       res.status(400).send(getResponseObject(undefined, 'No such directory'));
-//     }
-
-
-//     const content = fileManager.getDirectoryContent()
-//   }
-// );
-
 router.post(
   "/upload-file",
   authenticate,
