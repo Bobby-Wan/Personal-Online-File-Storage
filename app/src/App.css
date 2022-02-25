@@ -5,6 +5,7 @@
 
 .header {
   background-color: white;
+  padding-left: 240px;
 }
 
 .formWrapper {
@@ -16,6 +17,7 @@
 
 .homePage {
   height: calc(100vh - 50px);
+  margin-left: 200px;
 }
 
 .lguotButton {
