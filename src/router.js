@@ -29,7 +29,7 @@ function createErrorObject(message, field) {
 }
 
 function authenticate(req, res, next) {
-  const token = req.headers["authorization"] || req.cookies["auth"];
+  const token = req.cookies["auth"] || req.headers["authorization"];
   if (!token) {
     res.status(401).json(getResponseObject(undefined, "Unable to find authentication token.\
     Please include it in 'authorization' header or 'auth-cookie' cookie"));
