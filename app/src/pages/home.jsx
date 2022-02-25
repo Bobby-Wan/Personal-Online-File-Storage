@@ -75,26 +75,28 @@ export default function HomePage() {
       return;
     }
 
-    let result = await fetch("http://127.0.0.1:8090/create", {
-      method: "post",
-      body: JSON.stringify({ path: folderName }),
+    const config = {
       headers: {
-        "Content-Type": "application/json",
         Accept: "*/*",
         authorization: localStorage.getItem("authToken"),
       },
-    });
+      params: { path: folderName },
+    };
 
-    result = await result.json();
-    if (result.data) {
-      console.log("CREATED FOLDER");
-      // TODO: fetch back new directory or only show it
-      setOpen(false);
-    }
-    if (result.error !== null && result.error.length > 0) {
-      //TODO: error handling
-      console.log("ERROR!");
-    }
+    axios
+      .post("http://127.0.0.1:8090/upload-folder", null, config)
+      .then((res) => {
+        if (res.status === 200) {
+          setOpen(false);
+          return;
+        }
+        // TODO: show folders
+      });
+
+    // if (result.error !== null && result.error.length > 0) {
+    //   //TODO: error handling
+    //   console.log("ERROR!");
+    // }
   };
 
   return (
@@ -144,9 +146,7 @@ export default function HomePage() {
                 type="file"
                 hidden
                 multiple
-                onChange={(e) => {
-                  setFiles(e.target.files);
-                }}
+                onChange={(e) => setFiles(e.target.files)}
               />
             </Button>
           </Tooltip>
@@ -168,9 +168,9 @@ export default function HomePage() {
                 >
                   {file.name}
                   <Button
-                    onClick={() => {
-                      setFiles(removeFileFromSelectedFiles(file.name, files));
-                    }}
+                    onClick={() =>
+                      setFiles(removeFileFromSelectedFiles(file.name, files))
+                    }
                   >
                     <CancelIcon />
                   </Button>
@@ -186,11 +186,7 @@ export default function HomePage() {
               >
                 Upload <PublishIcon />
               </Button>
-              <Button
-                onClick={() => {
-                  setFiles([]);
-                }}
-              >
+              <Button onClick={() => setFiles([])}>
                 <CancelIcon />
               </Button>
             </div>
