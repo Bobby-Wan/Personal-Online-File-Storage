@@ -1,13 +1,13 @@
 const url = require('url');
 const path = require('path');
 
-let defaultCookieOptions = {
-    secure:true,
-    httpOnly:true,
-    domain:'localhost',
-    maxAge:3600,
-    sameSite:'strict'
-};
+// let defaultCookieOptions = {
+//     secure:true,
+//     httpOnly:true,
+//     domain:'localhost',
+//     maxAge:3600,
+//     sameSite:'strict'
+// };
 
 // function updateSession(req,res,user){
 //     if(!req.session.user){
@@ -37,6 +37,20 @@ function getRealPath(requestPath){
     return currentPath;
 }
 
+function isValidRelativePath(path){
+    return !(path.includes('..') || path.includes('~'));
+}
+function validatePath(req, res, next){
+    const path = req.query.path;
+    if(path && isValidRelativePath(path)){
+        next();
+        return;
+    }
+
+    res.status(400).send({error:'Invalid path', data:null});
+    return;
+}
+
 function getUserPath(userId, relativePath){
     const realPath = getRealPath(relativePath);
     userPath = path.join(userId, realPath);
@@ -47,5 +61,6 @@ function getUserPath(userId, relativePath){
 module.exports = {
     getQueryJSON,
     getUserPath,
-    getRealPath
+    getRealPath,
+    validatePath
 }

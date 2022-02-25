@@ -30,7 +30,7 @@ function createErrorObject(message, field) {
 
 function authenticate(req, res, next) {
   const token = req.headers["authorization"] || req.cookies["auth-cookie"];
-  if(!token){
+  if (!token) {
     res.status(401).json(getResponseObject(undefined, "Unable to find authentication token.\
     Please include it in 'authorization' header or 'auth-cookie' cookie"));
     return;
@@ -53,14 +53,14 @@ function authenticate(req, res, next) {
  * @param - path
  * @description - Get content in specified directory
  */
-router.get("/content/", authenticate, (req, res) => {
+router.get("/content/", authenticate, helpers.validatePath, (req, res) => {
   const queryPath = req.query.path;
   const userId = req.userId;
   const relPath = path.join(userId, queryPath);
 
-  Promise.resolve(fileManager.directoryExistsPromise(relPath, {relative:true}))
+  Promise.resolve(fileManager.directoryExistsPromise(relPath, { relative: true }))
     .then(() => {
-      return Promise.resolve(fileManager.listFiles(relPath, {relative:true}));
+      return Promise.resolve(fileManager.listFiles(relPath, { relative: true }));
     })
     .then((files) => {
       res.status(200).json(getResponseObject(files));
@@ -76,6 +76,7 @@ router.get("/content/", authenticate, (req, res) => {
         );
     });
 });
+
 
 router.post(
   "/upload-file",
@@ -93,12 +94,12 @@ router.post(
     const path = req.query.path;
     const userId = req.userId;
     fileManager.createUserFolderPromise(userId, path)
-    .then(()=>{
-      res.status(200).send(getResponseObject());
-    })
-    .catch((err)=>{
-      res.status(400).send(getResponseObject(undefined, err));
-    })
+      .then(() => {
+        res.status(200).send(getResponseObject());
+      })
+      .catch((err) => {
+        res.status(400).send(getResponseObject(undefined, err));
+      })
     // console.log(`path: ${path}\nuserId: ${userId}`)
   }
 );
@@ -248,27 +249,27 @@ router.post(
       }
 
       bcrypt.compare(password, user.password)
-      .then((result)=>{
-        if(!result){
-          res.status(400)
-          .json(getResponseObject(undefined, "Invalid email/password"));
-          return;
-        }
+        .then((result) => {
+          if (!result) {
+            res.status(400)
+              .json(getResponseObject(undefined, "Invalid email/password"));
+            return;
+          }
 
-        let tokenPromise = auth.createToken({
-          userId: user.id,
-          username: user.username,
-          email: user.email,
-        });
-        Promise.resolve(tokenPromise).then((token) => {
-          res.status(200).json(getResponseObject(token));
-        });
-        return;
-      })
-      .catch((err)=>{
-        res.status(500)
-        .json(getResponseObject(undefined, err));
-      })      
+          let tokenPromise = auth.createToken({
+            userId: user.id,
+            username: user.username,
+            email: user.email,
+          });
+          Promise.resolve(tokenPromise).then((token) => {
+            res.status(200).json(getResponseObject(token));
+          });
+          return;
+        })
+        .catch((err) => {
+          res.status(500)
+            .json(getResponseObject(undefined, err));
+        })
     });
   }
 );
@@ -345,7 +346,7 @@ router.get("/open", authenticate, async (req, res) => {
   const userPath = helpers.getUserPath(req.userId, requestPath);
 
   if (isDir === "true") {
-    let result = await fileManager.getFilesInDirectory(userPath, {relative:true});
+    let result = await fileManager.getFilesInDirectory(userPath, { relative: true });
 
     switch (result.constructor) {
       case errors.BadRequestError:
@@ -370,46 +371,18 @@ router.get("/open", authenticate, async (req, res) => {
     fileManager.sendFile(res, userPath);
   }
 });
+router.post("/delete", authenticate, helpers.validatePath, async function (req, res) {
+  const queryPath = req.query.path;
+  const userId = req.userId;
+  const relPath = path.join(userId, queryPath);
 
-router.post("/delete", authenticate, async function (req, res) {
-  let userPath;
-  try {
-    const clientFilePath = req.body.path;
-    const os_specific_path = helpers.getRealPath(clientFilePath);
-    userPath = path.join(req.session.userId, os_specific_path);
-  } catch (err) {
-    res.status(400).json({
-      code: 1,
-      message: "Incorrect file path in request.",
-    });
-  }
-
-  try {
-    await fileManager.deleteFile(userPath);
-  } catch (err) {
-    switch (err.constructor) {
-      case errors.BadRequestError:
-        res.status(400).json({
-          code: 1,
-          message: err.message,
-        });
-        break;
-      case errors.InternalServerError:
-        res.status(500).json({
-          code: 1,
-          message: "Something went wrong.",
-        });
-        break;
-
-      default:
-        res.status(500).end();
-    }
-  }
-
-  res.json({
-    code: 0,
-    message: "File deleted successfully",
-  });
+  fileManager.deleteFile(relPath, {relative:true})
+  .then(()=>{
+    res.status(200).send(getResponseObject());
+  })
+  .catch((err)=>{
+    res.status(400).send(getResponseObject(undefined, err));
+  })
 });
 
 router.post("/create", authenticate, async function (req, res) {
