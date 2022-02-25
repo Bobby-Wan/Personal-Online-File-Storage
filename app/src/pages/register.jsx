@@ -31,7 +31,6 @@ export default function RegisterPage() {
       },
     });
 
-    console.log(result);
     if (result.status === 200) {
       setRegisterStatus(true);
       return;

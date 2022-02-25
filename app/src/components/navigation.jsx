@@ -22,12 +22,11 @@ export default function Navigation(props) {
         Accept: "*/*",
         authorization: localStorage.getItem("authToken"),
       },
-      params: { path: localStorage.getItem("path") + file },
+      params: { path: localStorage.getItem("path") + "/" + file },
     };
 
     axios.get("http://127.0.0.1:8090/open", config).then((res) => {
       if (res.status === 200) {
-        console.log(res);
         props.handleImage(res.data);
       }
     });
@@ -41,12 +40,11 @@ export default function Navigation(props) {
       localStorage.getItem("path") !== "/"
     )
       newPath = localStorage.getItem("path") + "/" + path;
+
     if (localStorage.getItem("path") === "/")
       newPath = localStorage.getItem("path") + path;
 
-    console.log(newPath);
     localStorage.setItem("path", newPath);
-
     window.location.reload();
   };
 

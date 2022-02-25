@@ -3,16 +3,7 @@ import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 
-import {
-  // IconButton,
-  // Input,
-  // InputLabel,
-  // InputAdornment,
-  // FormControl,
-  Button,
-  Tooltip,
-} from "@mui/material";
-// import SearchIcon from "@mui/icons-material/Search";
+import { Button, Tooltip } from "@mui/material";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import PublishIcon from "@mui/icons-material/Publish";
@@ -44,7 +35,6 @@ export default function HomePage() {
     e.preventDefault();
 
     if (!files.length) {
-      //TODO: error handling
       console.log("NO SELECTED FILE!!");
       return;
     }
@@ -75,7 +65,6 @@ export default function HomePage() {
     e.preventDefault();
 
     if (folderName === "") {
-      //TODO: error handling
       console.log("NO NAME!!");
       return;
     }
@@ -110,7 +99,6 @@ export default function HomePage() {
 
     axios.get("http://127.0.0.1:8090/content", config).then((res) => {
       setAllDirs(res.data.data);
-      // TODO: show folders
     });
   };
 
@@ -179,7 +167,6 @@ export default function HomePage() {
           </div>
           {files.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column" }}>
-              {console.log(files)}
               {Object.values(files).map((file, index) => {
                 return (
                   <div
